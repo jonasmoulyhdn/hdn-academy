@@ -387,18 +387,35 @@ function PrintView({ playerId, onClose }) {
   return (
     <div style={{ maxWidth: 740, margin: "0 auto", fontFamily: "system-ui", background: "#fff" }}>
       <style>{`
+  .print-stripe-top { display: none; }
+  .print-stripe-bottom { display: none; }
   @media print {
     .no-print { display: none !important; }
-    @page { size: A4 portrait; margin: 0; }
-    @page :not(:first) { margin: 1.5cm 1.2cm; }
+    @page { size: A4 portrait; margin: 13mm 12mm 13mm 12mm; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
-    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; }
+    .print-stripe-top { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; }
+    .print-stripe-top .s-blue { height: 10px; background: #002B49; }
+    .print-stripe-top .s-red { height: 3px; background: #F9423A; }
+    .print-stripe-bottom { position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; }
+    .print-stripe-bottom .s-red { height: 3px; background: #F9423A; }
+    .print-stripe-bottom .s-blue { height: 10px; background: #002B49; }
+    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: -13mm -12mm; }
     .print-page-break { page-break-before: always; break-before: page; }
     .print-bilan { page-break-inside: avoid; break-inside: avoid; }
     .print-match-pair { page-break-after: always; break-after: page; page-break-inside: avoid; }
     .print-match-pair:last-child { page-break-after: auto; break-after: auto; }
   }
 `}</style>
+
+      {/* Fixed stripes - repeat on every printed page */}
+      <div className="print-stripe-top">
+        <div className="s-blue"></div>
+        <div className="s-red"></div>
+      </div>
+      <div className="print-stripe-bottom">
+        <div className="s-red"></div>
+        <div className="s-blue"></div>
+      </div>
 
       {/* Top action bar - sticky */}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24, margin:"0 0 0 0", padding:"12px 32px", background:T.blue, borderRadius:0, boxShadow:"0 2px 12px rgba(0,43,73,0.3)" }}>
@@ -453,9 +470,7 @@ function PrintView({ playerId, onClose }) {
       {/* Bilan stage */}
       {(player.bilan_technique || player.bilan_physique || player.bilan_mental || player.bilan_tactique || player.points_forts || player.axes_amelioration || player.bilan_global) && (
         <div className="print-bilan" style={{ marginBottom: 0 }}>
-          <div style={{ height:10, background:T.blue }}></div>
-          <div style={{ height:3, background:T.red, marginBottom:16 }}></div>
-          <div style={{ padding:"16px 32px 24px 32px" }}>
+          <div style={{ padding:"4px 0 24px 0" }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Bilan du stage</h2>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
             {[["Technique",player.bilan_technique],["Physique",player.bilan_physique],["Mental",player.bilan_mental],["Tactique",player.bilan_tactique]].filter(([,v])=>v).map(([l,v])=>(
@@ -484,10 +499,7 @@ function PrintView({ playerId, onClose }) {
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
         <div className="print-page-break">
-          {/* Bandes top */}
-          <div style={{ height:10, background:T.blue }}></div>
-          <div style={{ height:3, background:T.red, marginBottom:16 }}></div>
-          <div style={{ padding:"16px 32px 24px 32px" }}>
+          <div style={{ padding:"4px 0 24px 0" }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Journal des matchs</h2>
           {/* Stats sous le titre */}
           {isTournoi && (
@@ -536,15 +548,15 @@ function PrintView({ playerId, onClose }) {
                       <div>
                         <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.blue, marginBottom:2, letterSpacing:0.5 }}>PRÉPARATION</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:72 }}>{m.preparation||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:88 }}>{m.preparation||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
                         <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.red, marginBottom:2, letterSpacing:0.5 }}>DÉBRIEF</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:96 }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:120 }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
                         <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.muted, marginBottom:2, letterSpacing:0.5 }}>COMMENTAIRE</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted, minHeight:48 }}>{m.notes||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted, minHeight:56 }}>{m.notes||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
                       </div>
                     </div>
