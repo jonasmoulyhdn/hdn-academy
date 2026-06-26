@@ -147,6 +147,7 @@ function MatchCard({ match, index, onEdit, onDelete }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setExpanded(!expanded)}>
           <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Match {index + 1}</span>
           <Badge color="#fff" bg="rgba(255,255,255,0.2)">{match.round}</Badge>
+          {match.tournoi && <Badge color="#fff" bg="rgba(255,255,255,0.15)">{match.tournoi}</Badge>}
           {match.adversaire_nom && <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 13 }}>vs {match.adversaire_nom}</span>}
           {match.score && <span style={{ color: "#fff", fontWeight: 800, fontSize: 14, fontFamily: "Georgia, serif" }}>{match.score}</span>}
           {avgNote && <Badge color="#fff" bg="rgba(255,255,255,0.2)">★ {avgNote}</Badge>}
@@ -216,6 +217,9 @@ function MatchForm({ match, onChange, onSave, onCancel, saving }) {
         <div style={{ flex: "1 1 120px" }}><Field label="Résultat"><select style={inputStyle} value={match.resultat||""} onChange={e=>u("resultat",e.target.value)}><option value="">–</option><option>Victoire</option><option>Défaite</option></select></Field></div>
       </div>
 
+      <Field label="Tournoi">
+        <input style={inputStyle} placeholder="Nom du tournoi" value={match.tournoi||""} onChange={e=>u("tournoi",e.target.value)}/>
+      </Field>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         <div style={{ flex: "2 1 180px" }}><Field label="Adversaire"><input style={inputStyle} placeholder="Prénom Nom" value={match.adversaire_nom||""} onChange={e=>u("adversaire_nom",e.target.value)}/></Field></div>
         <div style={{ flex: "1 1 100px" }}><Field label="Classement"><select style={inputStyle} value={match.adversaire_classement||"NC"} onChange={e=>u("adversaire_classement",e.target.value)}>{CLASSEMENTS.map(c=><option key={c}>{c}</option>)}</select></Field></div>
@@ -391,17 +395,11 @@ function PrintView({ playerId, onClose }) {
   .print-stripe-bottom { display: none; }
   @media print {
     .no-print { display: none !important; }
-    @page {
-      size: A4 portrait;
-      margin: 18mm 12mm 18mm 12mm;
-      border-top: 10px solid #002B49;
-      border-bottom: 10px solid #002B49;
-    }
+    @page { size: A4 portrait; margin: 15mm 12mm 15mm 12mm; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
-    .print-stripe-top { display: block !important; height: 3px; background: #F9423A; margin: -18mm -12mm 14mm -12mm; }
-    .print-stripe-bottom-wrapper { display: block !important; }
-    .print-stripe-bottom { display: block !important; height: 3px; background: #F9423A; margin: 14mm -12mm -18mm -12mm; }
-    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: -18mm -12mm; }
+    .print-stripe-top { display: none !important; }
+    .print-stripe-bottom { display: none !important; }
+    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: -15mm -12mm; }
     .print-page-break { page-break-before: always; break-before: page; }
     .print-bilan { page-break-inside: avoid; break-inside: avoid; }
     .print-match-pair { page-break-after: always; break-after: page; page-break-inside: avoid; }
@@ -409,10 +407,7 @@ function PrintView({ playerId, onClose }) {
   }
 `}</style>
 
-      {/* Red stripe just below the blue @page border-top */}
-      <div className="print-stripe-top"></div>
-      {/* Red stripe just above the blue @page border-bottom */}
-      <div className="print-stripe-bottom"></div>
+
 
       {/* Top action bar - sticky */}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24, margin:"0 0 0 0", padding:"12px 32px", background:T.blue, borderRadius:0, boxShadow:"0 2px 12px rgba(0,43,73,0.3)" }}>
@@ -435,8 +430,8 @@ function PrintView({ playerId, onClose }) {
         <div style={{ position: "absolute", top: 12, left: 0, right: 0, height: 4, background: T.red }}></div>
         <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 180, objectFit: "contain", marginBottom: 28 }} />
         {player.photo
-          ? <img src={player.photo} alt={fullName} style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: `4px solid ${T.blue}`, marginBottom: 20, boxShadow: "0 4px 20px rgba(0,43,73,0.2)" }}/>
-          : <div style={{ width: 120, height: 120, borderRadius: "50%", background: T.bluePale, border: `4px solid ${T.blue}`, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: T.blue }}>
+          ? <img src={player.photo} alt={fullName} style={{ width: 160, height: 160, borderRadius: "50%", objectFit: "cover", border: `4px solid ${T.blue}`, marginBottom: 24, boxShadow: "0 6px 24px rgba(0,43,73,0.25)" }}/>
+          : <div style={{ width: 160, height: 160, borderRadius: "50%", background: T.bluePale, border: `4px solid ${T.blue}`, marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: T.blue }}>
               {fullName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
             </div>
         }
@@ -516,7 +511,7 @@ function PrintView({ playerId, onClose }) {
                 return (
                   <div key={m.id} className="print-match" style={{ border:`1px solid ${T.border}`, borderRadius:8, overflow:"hidden", fontSize:11, display:"flex", flexDirection:"column" }}>
                     <div style={{ background: m.resultat==="Victoire"?T.blue:m.resultat==="Défaite"?T.red:T.mid, padding:"6px 12px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                      <div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Match {globalIdx+1} — {m.round}</div>
+                      <div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Match {globalIdx+1} — {m.round}{m.tournoi ? ` · ${m.tournoi}` : ""}</div>
                       <div style={{ color:"#fff", fontSize:11 }}>{m.date && new Date(m.date+"T00:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>
                     </div>
                     <div style={{ padding:"8px 12px", display:"flex", flexDirection:"column", flex:1 }}>
@@ -710,7 +705,7 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
       {tab==="matchs" && isTournoi && (
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            {!addingMatch && !editMatch && <Btn variant="red" small onClick={()=>{ setNewMatch({date:new Date().toISOString().slice(0,10),round:"1er tour",adversaire_nom:"",adversaire_classement:"NC",score:"",resultat:"",preparation:"",debrief:"",notes:"",note_tactique:0,note_attitude:0,note_concentration:0,note_coup_droit:0,note_revers:0,note_service:0,note_smash:0,note_volee:0,note_retour:0,_new:true}); setAddingMatch(true);}}>+ Match</Btn>}
+            {!addingMatch && !editMatch && <Btn variant="red" small onClick={()=>{ setNewMatch({date:new Date().toISOString().slice(0,10),round:"1er tour",tournoi:"",adversaire_nom:"",adversaire_classement:"NC",score:"",resultat:"",preparation:"",debrief:"",notes:"",note_tactique:0,note_attitude:0,note_concentration:0,note_coup_droit:0,note_revers:0,note_service:0,note_smash:0,note_volee:0,note_retour:0,_new:true}); setAddingMatch(true);}}>+ Match</Btn>}
           </div>
           {addingMatch && newMatch && <MatchForm match={newMatch} onChange={setNewMatch} onSave={saveNewMatch} onCancel={()=>{setAddingMatch(false);setNewMatch(null);}} saving={saving}/>}
           {matches.length===0 && !addingMatch && <div style={{ textAlign:"center", padding:"40px 20px", color:T.muted, fontStyle:"italic", background:T.surface, borderRadius:10, border:`1px dashed ${T.border}` }}>Aucun match enregistré.</div>}
