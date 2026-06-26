@@ -729,7 +729,7 @@ export default function HDNCarnetStage() {
       <div style={{ background:T.blue, padding:"14px 28px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           {(view==="detail"||view==="add") && <button onClick={()=>setView("list")} style={{ background:"none",border:"none",color:"rgba(255,255,255,0.75)",cursor:"pointer",fontSize:18,padding:0 }}>←</button>}
-          <img src={HDN_LOGO} alt="HDN" style={{ height:44, objectFit:"contain", filter:"brightness(0) invert(1)" }}/>
+          <div style={{ background:"#fff", borderRadius:8, padding:"3px 6px", display:"flex", alignItems:"center" }}><img src={HDN_LOGO} alt="HDN" style={{ height:40, objectFit:"contain" }}/></div>
           <div>
             <div style={{ color:"rgba(255,255,255,0.6)", fontSize:11, letterSpacing:1, textTransform:"uppercase" }}>HDN Academy</div>
             {view==="list"
