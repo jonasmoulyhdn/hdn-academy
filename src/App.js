@@ -386,7 +386,25 @@ function PrintView({ playerId, onClose }) {
 
   return (
     <div style={{ padding: "24px 32px", maxWidth: 740, margin: "0 auto", fontFamily: "system-ui", background: "#fff" }}>
-      <style>{`@media print { .no-print { display: none !important; } @page { margin: 1.5cm; } }`}</style>
+      <style>{`
+  @media print {
+    .no-print { display: none !important; }
+    @page { margin: 1.5cm; size: A4; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-page-break { page-break-before: always; break-before: always; }
+    .print-keep { page-break-inside: avoid; break-inside: avoid; }
+    .print-section { page-break-inside: avoid; break-inside: avoid; }
+  }
+`}</style>
+
+      {/* Top action bar */}
+      <div className="no-print" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, padding:"12px 16px", background:T.bluePale, borderRadius:8, border:`1px solid ${T.blue}30` }}>
+        <div style={{ fontSize:13, color:T.blue, fontWeight:600 }}>Aperçu avant impression — {player.prenom} {player.nom}</div>
+        <div style={{ display:"flex", gap:10 }}>
+          <Btn onClick={onClose} variant="secondary" small>← Retour</Btn>
+          <Btn onClick={() => window.print()} variant="primary" small>🖨 Imprimer / Exporter PDF</Btn>
+        </div>
+      </div>
 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, paddingBottom: 16, borderBottom: `3px solid ${T.blue}` }}>
@@ -455,10 +473,10 @@ function PrintView({ playerId, onClose }) {
 
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
-        <div>
+        <div className="print-page-break">
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Journal des matchs</h2>
           {matches.map((m,i) => (
-            <div key={m.id} style={{ marginBottom:16, border:`1px solid ${T.border}`, borderRadius:8, overflow:"hidden", pageBreakInside:"avoid" }}>
+            <div key={m.id} className="print-keep" style={{ marginBottom:16, border:`1px solid ${T.border}`, borderRadius:8, overflow:"hidden" }}>
               <div style={{ background: m.resultat==="Victoire"?T.blue:m.resultat==="Défaite"?T.red:T.mid, padding:"7px 14px", display:"flex", justifyContent:"space-between" }}>
                 <div style={{ color:"#fff", fontWeight:700, fontSize:13 }}>Match {i+1} — {m.round}</div>
                 <div style={{ color:"#fff", fontSize:12 }}>{m.date && new Date(m.date+"T00:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>
@@ -525,7 +543,7 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
       .catch(e => { setError(e.message); setLoading(false); });
   }, [playerId]);
 
-  const isTournoi = player?.type_stage === "tennis_tournoi";
+  const isTournoi = !player?.type_stage || player?.type_stage === "tennis_tournoi";
   const wins = matches.filter(m=>m.resultat==="Victoire").length;
   const losses = matches.filter(m=>m.resultat==="Défaite").length;
 
