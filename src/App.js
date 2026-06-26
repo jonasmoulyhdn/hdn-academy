@@ -389,8 +389,8 @@ function PrintView({ playerId, onClose }) {
       <style>{`
   @media print {
     .no-print { display: none !important; }
-    @page { margin: 0; size: A4 portrait; }
-    @page :not(:first) { margin: 1.2cm; }
+    @page { size: A4 portrait; margin: 0; }
+    @page :not(:first) { margin: 1.5cm 1.2cm; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
     .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; }
     .print-page-break { page-break-before: always; break-before: page; }
@@ -411,15 +411,15 @@ function PrintView({ playerId, onClose }) {
 
       {/* ── PAGE DE GARDE ── */}
       <div className="print-cover" style={{
-        height: "297mm", display: "flex", flexDirection: "column",
+        width: "210mm", height: "297mm", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         background: T.white, pageBreakAfter: "always", breakAfter: "page",
-        padding: "48px 40px", textAlign: "center", position: "relative",
-        boxSizing: "border-box", overflow: "hidden",
+        padding: "40px 32px", textAlign: "center", position: "relative",
+        boxSizing: "border-box", overflow: "hidden", margin: "0 auto",
       }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 12, background: T.blue }}></div>
         <div style={{ position: "absolute", top: 12, left: 0, right: 0, height: 4, background: T.red }}></div>
-        <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 90, objectFit: "contain", marginBottom: 20 }} />
+        <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 110, objectFit: "contain", marginBottom: 24 }} />
         {player.photo
           ? <img src={player.photo} alt={fullName} style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: `4px solid ${T.blue}`, marginBottom: 20, boxShadow: "0 4px 20px rgba(0,43,73,0.2)" }}/>
           : <div style={{ width: 120, height: 120, borderRadius: "50%", background: T.bluePale, border: `4px solid ${T.blue}`, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: T.blue }}>
@@ -446,22 +446,9 @@ function PrintView({ playerId, onClose }) {
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: T.red }}></div>
       </div>
 
-      {/* Objectif */}
-      {player.objectif && <div style={{ background: T.bluePale, border: `1px solid ${T.blue}30`, borderRadius: 8, padding: "10px 14px", marginBottom: 20, fontSize: 13 }}>
-        <strong style={{ color: T.blue }}>Objectif :</strong> {player.objectif}
-      </div>}
 
-      {/* Stats matchs — tournoi only */}
-      {isTournoi && (
-        <div className="print-bilan" style={{ display: "flex", marginBottom: 16, border: `1px solid ${T.border}`, borderRadius: 8, overflow: "hidden" }}>
-          {[{l:"Matchs",v:matches.length,c:T.dark},{l:"Victoires",v:wins,c:T.blue},{l:"Défaites",v:losses,c:T.red},{l:"Ratio",v:matches.length>0?`${Math.round(wins/matches.length*100)}%`:"–",c:T.blue}].map((s,i)=>(
-            <div key={i} style={{ flex:1, textAlign:"center", padding:"12px 8px", borderRight: i<3?`1px solid ${T.border}`:"none" }}>
-              <div style={{ fontFamily:"Georgia,serif", fontSize:24, fontWeight:700, color:s.c }}>{s.v}</div>
-              <div style={{ fontSize:10, color:T.muted, fontWeight:700, letterSpacing:0.5, textTransform:"uppercase" }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
-      )}
+
+
 
       {/* Bilan stage */}
       {(player.bilan_technique || player.bilan_physique || player.bilan_mental || player.bilan_tactique || player.points_forts || player.axes_amelioration || player.bilan_global) && (
@@ -493,6 +480,17 @@ function PrintView({ playerId, onClose }) {
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
         <div className="print-page-break">
+          {/* Stats */}
+          {isTournoi && (
+            <div style={{ display:"flex", marginBottom:16, border:`1px solid ${T.border}`, borderRadius:8, overflow:"hidden" }}>
+              {[{l:"Matchs",v:matches.length,c:T.dark},{l:"Victoires",v:wins,c:T.blue},{l:"Défaites",v:losses,c:T.red},{l:"Ratio",v:matches.length>0?`${Math.round(wins/matches.length*100)}%`:"–",c:T.blue}].map((s,i)=>(
+                <div key={i} style={{ flex:1, textAlign:"center", padding:"12px 8px", borderRight: i<3?`1px solid ${T.border}`:"none" }}>
+                  <div style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:s.c }}>{s.v}</div>
+                  <div style={{ fontSize:10, color:T.muted, fontWeight:700, letterSpacing:0.5, textTransform:"uppercase" }}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+          )}
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Journal des matchs</h2>
           {Array.from({length: Math.ceil(matches.length / 2)}, (_, pageIdx) => (
             <div key={pageIdx} className="print-match-pair" style={{ display:"grid", gridTemplateColumns: matches.length > 1 ? "1fr 1fr" : "1fr", gap:12, marginBottom:0 }}>
@@ -539,9 +537,18 @@ function PrintView({ playerId, onClose }) {
         </div>
       )}
 
-      <div style={{ marginTop:32, borderTop:`1px solid ${T.border}`, paddingTop:10, display:"flex", justifyContent:"space-between", fontSize:10, color:T.muted }}>
-        <span>HDN Academy — Nîmes</span>
-        <span>Généré le {new Date().toLocaleDateString("fr-FR")}</span>
+      <div style={{ marginTop:32, borderTop:`2px solid ${T.blue}`, paddingTop:12 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+          <img src={HDN_LOGO} alt="HDN" style={{ height:28, objectFit:"contain" }}/>
+          <div style={{ fontSize:10, color:T.muted, textAlign:"right" }}>
+            <div>Bilan de stage — {fullName}</div>
+            <div>Généré le {new Date().toLocaleDateString("fr-FR")}</div>
+          </div>
+        </div>
+        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:8, display:"flex", justifyContent:"space-between", fontSize:9, color:T.muted }}>
+          <span>HDN Academy · 620 Chemin des Hauts de Nîmes · 30000 Nîmes</span>
+          <span>www.hdnacademy.com</span>
+        </div>
       </div>
 
       <div className="no-print" style={{ marginTop:24, display:"flex", gap:12 }}>
