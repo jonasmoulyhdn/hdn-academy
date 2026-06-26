@@ -120,7 +120,7 @@ const taStyle = { ...inputStyle, resize: "vertical", minHeight: 80 };
 function Spinner() {
   return <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
     <div style={{ width: 32, height: 32, border: `3px solid ${T.mid}`, borderTop: `3px solid ${T.blue}`,
-      borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
   </div>;
 }
@@ -176,12 +176,12 @@ function MatchCard({ match, index, onEdit, onDelete }) {
             </div>}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+            <div style={{ flex: "1 1 200px", minWidth: 180 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 8, letterSpacing: 0.5 }}>MENTAL / TACTIQUE</div>
               {NOTE_MENTALE.map((l,i) => <StarRow key={l} label={l} noteKey={NOTE_KEYS_MENTALE[i]} match={match} onChange={() => {}} />)}
             </div>
-            <div>
+            <div style={{ flex: "1 1 200px", minWidth: 180 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 8, letterSpacing: 0.5 }}>TECHNIQUE</div>
               {NOTE_TECHNIQUE.map((l,i) => <StarRow key={l} label={l} noteKey={NOTE_KEYS_TECHNIQUE[i]} match={match} onChange={() => {}} />)}
             </div>
@@ -210,32 +210,32 @@ function MatchForm({ match, onChange, onSave, onCancel, saving }) {
       display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ fontWeight: 700, fontSize: 15, color: T.blue }}>{match._new ? "➕ Nouveau match" : "✏️ Modifier"}</div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        <Field label="Date"><input type="date" style={inputStyle} value={match.date||""} onChange={e=>u("date",e.target.value)}/></Field>
-        <Field label="Tour"><select style={inputStyle} value={match.round||"1er tour"} onChange={e=>u("round",e.target.value)}>{ROUNDS.map(r=><option key={r}>{r}</option>)}</select></Field>
-        <Field label="Résultat"><select style={inputStyle} value={match.resultat||""} onChange={e=>u("resultat",e.target.value)}><option value="">–</option><option>Victoire</option><option>Défaite</option></select></Field>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ flex: "1 1 130px" }}><Field label="Date"><input type="date" style={inputStyle} value={match.date||""} onChange={e=>u("date",e.target.value)}/></Field></div>
+        <div style={{ flex: "1 1 130px" }}><Field label="Tour"><select style={inputStyle} value={match.round||"1er tour"} onChange={e=>u("round",e.target.value)}>{ROUNDS.map(r=><option key={r}>{r}</option>)}</select></Field></div>
+        <div style={{ flex: "1 1 120px" }}><Field label="Résultat"><select style={inputStyle} value={match.resultat||""} onChange={e=>u("resultat",e.target.value)}><option value="">–</option><option>Victoire</option><option>Défaite</option></select></Field></div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12 }}>
-        <Field label="Adversaire"><input style={inputStyle} placeholder="Prénom Nom" value={match.adversaire_nom||""} onChange={e=>u("adversaire_nom",e.target.value)}/></Field>
-        <Field label="Classement"><select style={inputStyle} value={match.adversaire_classement||"NC"} onChange={e=>u("adversaire_classement",e.target.value)}>{CLASSEMENTS.map(c=><option key={c}>{c}</option>)}</select></Field>
-        <Field label="Score"><input style={inputStyle} placeholder="6/3 4/6 6/4" value={match.score||""} onChange={e=>u("score",e.target.value)}/></Field>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ flex: "2 1 180px" }}><Field label="Adversaire"><input style={inputStyle} placeholder="Prénom Nom" value={match.adversaire_nom||""} onChange={e=>u("adversaire_nom",e.target.value)}/></Field></div>
+        <div style={{ flex: "1 1 100px" }}><Field label="Classement"><select style={inputStyle} value={match.adversaire_classement||"NC"} onChange={e=>u("adversaire_classement",e.target.value)}>{CLASSEMENTS.map(c=><option key={c}>{c}</option>)}</select></Field></div>
+        <div style={{ flex: "1 1 100px" }}><Field label="Score"><input style={inputStyle} placeholder="6/3 4/6 6/4" value={match.score||""} onChange={e=>u("score",e.target.value)}/></Field></div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+        <div style={{ flex: "1 1 200px", minWidth: 180 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.muted, marginBottom: 10, letterSpacing: 0.5 }}>MENTAL / TACTIQUE</div>
           {NOTE_MENTALE.map((l,i) => <StarRow key={l} label={l} noteKey={NOTE_KEYS_MENTALE[i]} match={match} onChange={onChange}/>)}
         </div>
-        <div>
+        <div style={{ flex: "1 1 200px", minWidth: 180 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.muted, marginBottom: 10, letterSpacing: 0.5 }}>TECHNIQUE</div>
           {NOTE_TECHNIQUE.map((l,i) => <StarRow key={l} label={l} noteKey={NOTE_KEYS_TECHNIQUE[i]} match={match} onChange={onChange}/>)}
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <Field label="Préparation"><textarea style={taStyle} placeholder="Tennis + physique..." value={match.preparation||""} onChange={e=>u("preparation",e.target.value)}/></Field>
-        <Field label="Débrief post-match"><textarea style={taStyle} placeholder="Points forts, axes..." value={match.debrief||""} onChange={e=>u("debrief",e.target.value)}/></Field>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ flex: "1 1 220px" }}><Field label="Préparation"><textarea style={taStyle} placeholder="Tennis + physique..." value={match.preparation||""} onChange={e=>u("preparation",e.target.value)}/></Field></div>
+        <div style={{ flex: "1 1 220px" }}><Field label="Débrief post-match"><textarea style={taStyle} placeholder="Points forts, axes..." value={match.debrief||""} onChange={e=>u("debrief",e.target.value)}/></Field></div>
       </div>
 
       <Field label="Notes"><input style={inputStyle} placeholder="Observations libres..." value={match.notes||""} onChange={e=>u("notes",e.target.value)}/></Field>
@@ -389,11 +389,13 @@ function PrintView({ playerId, onClose }) {
       <style>{`
   @media print {
     .no-print { display: none !important; }
-    @page { margin: 1.5cm; size: A4; }
+    @page { margin: 0; size: A4; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-page-break { page-break-before: always; break-before: always; }
-    .print-keep { page-break-inside: avoid; break-inside: avoid; }
-    .print-section { page-break-inside: avoid; break-inside: avoid; }
+    .print-cover { page-break-after: always !important; break-after: page !important; min-height: 100vh !important; }
+    .print-page-break { page-break-before: always; break-before: page; }
+    .print-bilan { page-break-inside: avoid; break-inside: avoid; }
+    .print-match-pair { page-break-after: always; break-after: page; page-break-inside: avoid; }
+    .print-match-pair:last-child { page-break-after: auto; break-after: auto; }
   }
 `}</style>
 
@@ -406,25 +408,40 @@ function PrintView({ playerId, onClose }) {
         </div>
       </div>
 
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, paddingBottom: 16, borderBottom: `3px solid ${T.blue}` }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-            <img src={HDN_LOGO} alt="HDN" style={{ height: 52, objectFit: "contain" }}/>
-            <div>
-              <div style={{ fontSize: 10, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>HDN Academy — Nîmes Tennis Tour</div>
-              <div style={{ fontSize: 10, color: T.muted }}>Bilan de stage — {new Date().toLocaleDateString("fr-FR", {day:"numeric",month:"long",year:"numeric"})}</div>
+      {/* ── PAGE DE GARDE ── */}
+      <div className="print-cover" style={{
+        minHeight: "100vh", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        background: T.white, pageBreakAfter: "always", breakAfter: "page",
+        padding: "60px 40px", textAlign: "center", position: "relative",
+      }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 12, background: T.blue }}></div>
+        <div style={{ position: "absolute", top: 12, left: 0, right: 0, height: 4, background: T.red }}></div>
+        <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 120, objectFit: "contain", marginBottom: 32 }} />
+        {player.photo
+          ? <img src={player.photo} alt={fullName} style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", border: `4px solid ${T.blue}`, marginBottom: 28, boxShadow: "0 4px 20px rgba(0,43,73,0.2)" }}/>
+          : <div style={{ width: 140, height: 140, borderRadius: "50%", background: T.bluePale, border: `4px solid ${T.blue}`, marginBottom: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: T.blue }}>
+              {fullName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
             </div>
-          </div>
-          <h1 style={{ margin: 0, fontFamily: "Georgia, serif", fontSize: 26, color: T.dark }}>{fullName}</h1>
-          <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-            <Badge color={T.blue}>{player.classement}</Badge>
-            {player.age && <Badge color={T.muted}>{player.age} ans</Badge>}
-            {player.club && <Badge color={T.muted}>{player.club}</Badge>}
-            <Badge color={isTournoi ? T.red : T.blue}>{isTournoi ? "🎾 Tennis + Tournois" : "🏋️ Stage uniquement"}</Badge>
-          </div>
+        }
+        <h1 style={{ margin: "0 0 8px 0", fontFamily: "Georgia, serif", fontSize: 36, color: T.dark, letterSpacing: 1 }}>{fullName}</h1>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
+          <Badge color={T.blue}>{player.classement}</Badge>
+          {player.age && <Badge color={T.muted}>{player.age} ans</Badge>}
+          {player.club && <Badge color={T.muted}>{player.club}</Badge>}
+          <Badge color={isTournoi ? T.red : T.blue}>{isTournoi ? "🎾 Tennis + Tournois" : "🏋️ Stage uniquement"}</Badge>
         </div>
-        {player.photo && <img src={player.photo} alt={fullName} style={{ width: 70, height: 70, borderRadius: "50%", objectFit: "cover", border: `2px solid ${T.border}` }}/>}
+        {player.objectif && (
+          <div style={{ maxWidth: 480, background: T.bluePale, border: `1px solid ${T.blue}30`, borderRadius: 12, padding: "16px 24px", marginBottom: 32, fontSize: 15, fontStyle: "italic", color: T.dark, lineHeight: 1.6 }}>
+            « {player.objectif} »
+          </div>
+        )}
+        <div style={{ width: 60, height: 3, background: T.red, borderRadius: 2, marginBottom: 24 }}></div>
+        <div style={{ fontSize: 13, color: T.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Bilan de stage</div>
+        <div style={{ fontSize: 13, color: T.muted }}>{new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</div>
+        <div style={{ position: "absolute", bottom: 24, left: 0, right: 0, textAlign: "center", fontSize: 10, color: T.muted, letterSpacing: 1 }}>HDN ACADEMY — NÎMES — 1997</div>
+        <div style={{ position: "absolute", bottom: 4, left: 0, right: 0, height: 12, background: T.blue }}></div>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: T.red }}></div>
       </div>
 
       {/* Objectif */}
