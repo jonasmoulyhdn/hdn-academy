@@ -191,12 +191,15 @@ function RadarChart({ data, size = 220 }) {
 }
 
 // ─── STATS SECTION ───────────────────────────────────────────────
-function MatchStats({ matches }) {
-  if (!matches || matches.length === 0) return null;
+function MatchStats({ matches, playerNotes }) {
   const allKeys = [...NOTE_KEYS_MENTALE, ...NOTE_KEYS_TECHNIQUE];
   const allLabels = [...NOTE_MENTALE, ...NOTE_TECHNIQUE];
+  const usePlayer = (!matches || matches.length === 0) && playerNotes;
 
   const avgs = allKeys.map((k, i) => {
+    if (usePlayer) {
+      return { key: k, label: allLabels[i], value: playerNotes[k] || 0 };
+    }
     const vals = matches.map(m => m[k] || 0).filter(v => v > 0);
     return {
       key: k,
@@ -204,6 +207,8 @@ function MatchStats({ matches }) {
       value: vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0,
     };
   });
+
+  if (avgs.every(a => a.value === 0)) return null;
 
   const mentalAvgs = avgs.slice(0, 3);
   const techAvgs = avgs.slice(3);
@@ -214,7 +219,9 @@ function MatchStats({ matches }) {
   return (
     <div style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 10, padding: "16px 20px", marginBottom: 16 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: T.blue, marginBottom: 14, fontFamily: "Georgia, serif" }}>
-        Évaluation moyenne sur {matches.length} match{matches.length > 1 ? "s" : ""}
+        {matches && matches.length > 0
+          ? `Évaluation moyenne sur ${matches.length} match${matches.length > 1 ? "s" : ""}`
+          : "Évaluation globale du stage"}
       </div>
       <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
         {/* Radar */}
@@ -385,6 +392,15 @@ function BilanForm({ player, onSave, onCancel, saving }) {
     points_forts: player.points_forts || "",
     axes_amelioration: player.axes_amelioration || "",
     bilan_global: player.bilan_global || "",
+    note_tactique: player.note_tactique || 0,
+    note_attitude: player.note_attitude || 0,
+    note_concentration: player.note_concentration || 0,
+    note_coup_droit: player.note_coup_droit || 0,
+    note_revers: player.note_revers || 0,
+    note_service: player.note_service || 0,
+    note_smash: player.note_smash || 0,
+    note_volee: player.note_volee || 0,
+    note_retour: player.note_retour || 0,
   });
   const u = (k,v) => setBilan(b => ({...b, [k]: v}));
 
@@ -410,6 +426,33 @@ function BilanForm({ player, onSave, onCancel, saving }) {
           <textarea style={taStyle} placeholder="Schémas de jeu, lecture du match..."
             value={bilan.bilan_tactique} onChange={e=>u("bilan_tactique",e.target.value)}/>
         </Field>
+      </div>
+
+      {/* Évaluation par étoiles */}
+      <div style={{ background: T.surface, borderRadius: 8, padding: "14px 16px" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: T.blue, marginBottom: 12, letterSpacing: 0.5 }}>
+          ÉVALUATION GLOBALE DU STAGE
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+          <div style={{ flex: "1 1 180px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 8, letterSpacing: 0.5 }}>MENTAL / TACTIQUE</div>
+            {NOTE_MENTALE.map((l,i) => (
+              <div key={l} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 0", borderBottom:`1px solid ${T.mid}` }}>
+                <span style={{ fontSize:13, color:T.dark }}>{l}</span>
+                <Stars value={bilan[NOTE_KEYS_MENTALE[i]]} onChange={v => u(NOTE_KEYS_MENTALE[i], v)}/>
+              </div>
+            ))}
+          </div>
+          <div style={{ flex: "1 1 180px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 8, letterSpacing: 0.5 }}>TECHNIQUE</div>
+            {NOTE_TECHNIQUE.map((l,i) => (
+              <div key={l} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 0", borderBottom:`1px solid ${T.mid}` }}>
+                <span style={{ fontSize:13, color:T.dark }}>{l}</span>
+                <Stars value={bilan[NOTE_KEYS_TECHNIQUE[i]]} onChange={v => u(NOTE_KEYS_TECHNIQUE[i], v)}/>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <Field label="✅ Points forts">
@@ -857,7 +900,9 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
       {/* BILAN TAB */}
       {tab==="bilan" && (
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          {matches.length > 0 && <MatchStats matches={matches}/>}
+          {(matches.length > 0 || NOTE_KEYS_MENTALE.some(k => player[k] > 0) || NOTE_KEYS_TECHNIQUE.some(k => player[k] > 0)) && (
+            <MatchStats matches={matches} playerNotes={player}/>
+          )}
           {editingBilan
             ? <BilanForm player={player} onSave={saveBilan} onCancel={()=>setEditingBilan(false)} saving={saving}/>
             : (
