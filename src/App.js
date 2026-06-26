@@ -130,6 +130,129 @@ function SectionTitle({ children }) {
     borderBottom: `2px solid ${T.blue}`, paddingBottom: 8 }}>{children}</h3>;
 }
 
+
+// ─── RADAR CHART ─────────────────────────────────────────────────
+function RadarChart({ data, size = 220 }) {
+  const cx = size / 2, cy = size / 2;
+  const r = size * 0.36;
+  const n = data.length;
+  const levels = 5;
+
+  function polar(angle, radius) {
+    const a = (angle - Math.PI / 2);
+    return { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) };
+  }
+
+  const axes = data.map((_, i) => polar(2 * Math.PI * i / n, r));
+
+  const gridPolygons = Array.from({ length: levels }, (_, l) => {
+    const fr = r * (l + 1) / levels;
+    return data.map((_, i) => {
+      const p = polar(2 * Math.PI * i / n, fr);
+      return `${p.x},${p.y}`;
+    }).join(' ');
+  });
+
+  const dataPoints = data.map((d, i) => {
+    const p = polar(2 * Math.PI * i / n, r * (d.value / 5));
+    return `${p.x},${p.y}`;
+  }).join(' ');
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* Grid */}
+      {gridPolygons.map((pts, i) => (
+        <polygon key={i} points={pts} fill="none" stroke="#DDE3E9" strokeWidth={0.8}/>
+      ))}
+      {/* Axes */}
+      {axes.map((p, i) => (
+        <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#DDE3E9" strokeWidth={0.8}/>
+      ))}
+      {/* Data polygon */}
+      <polygon points={dataPoints} fill="#002B4930" stroke="#002B49" strokeWidth={2} strokeLinejoin="round"/>
+      {/* Data points */}
+      {data.map((d, i) => {
+        const p = polar(2 * Math.PI * i / n, r * (d.value / 5));
+        return <circle key={i} cx={p.x} cy={p.y} r={3} fill="#002B49"/>;
+      })}
+      {/* Labels */}
+      {data.map((d, i) => {
+        const p = polar(2 * Math.PI * i / n, r + 18);
+        const anchor = p.x < cx - 5 ? "end" : p.x > cx + 5 ? "start" : "middle";
+        return (
+          <text key={i} x={p.x} y={p.y + 4} textAnchor={anchor}
+            fontSize={8.5} fill="#5E7080" fontFamily="system-ui">
+            {d.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ─── STATS SECTION ───────────────────────────────────────────────
+function MatchStats({ matches }) {
+  if (!matches || matches.length === 0) return null;
+  const allKeys = [...NOTE_KEYS_MENTALE, ...NOTE_KEYS_TECHNIQUE];
+  const allLabels = [...NOTE_MENTALE, ...NOTE_TECHNIQUE];
+
+  const avgs = allKeys.map((k, i) => {
+    const vals = matches.map(m => m[k] || 0).filter(v => v > 0);
+    return {
+      key: k,
+      label: allLabels[i],
+      value: vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0,
+    };
+  });
+
+  const mentalAvgs = avgs.slice(0, 3);
+  const techAvgs = avgs.slice(3);
+  const radarData = avgs.filter(a => a.value > 0);
+
+  if (radarData.length === 0) return null;
+
+  return (
+    <div style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 10, padding: "16px 20px", marginBottom: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.blue, marginBottom: 14, fontFamily: "Georgia, serif" }}>
+        Évaluation moyenne sur {matches.length} match{matches.length > 1 ? "s" : ""}
+      </div>
+      <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
+        {/* Radar */}
+        <div style={{ flexShrink: 0 }}>
+          <RadarChart data={radarData} size={200}/>
+        </div>
+        {/* Star averages */}
+        <div style={{ flex: 1, minWidth: 180 }}>
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: 0.5, marginBottom: 6 }}>MENTAL / TACTIQUE</div>
+            {mentalAvgs.map(a => (
+              <div key={a.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "3px 0", borderBottom: `1px solid ${T.mid}` }}>
+                <span style={{ fontSize: 12, color: T.dark }}>{a.label}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Stars value={Math.round(a.value)} readonly/>
+                  <span style={{ fontSize: 11, color: T.muted, minWidth: 24 }}>{a.value > 0 ? a.value.toFixed(1) : "–"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: 0.5, marginBottom: 6 }}>TECHNIQUE</div>
+            {techAvgs.map(a => (
+              <div key={a.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "3px 0", borderBottom: `1px solid ${T.mid}` }}>
+                <span style={{ fontSize: 12, color: T.dark }}>{a.label}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Stars value={Math.round(a.value)} readonly/>
+                  <span style={{ fontSize: 11, color: T.muted, minWidth: 24 }}>{a.value > 0 ? a.value.toFixed(1) : "–"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MATCH CARD ──────────────────────────────────────────────────
 function MatchCard({ match, index, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
@@ -464,6 +587,31 @@ function PrintView({ playerId, onClose }) {
         <div className="print-bilan" style={{ marginBottom: 0 }}>
           <div style={{ padding:"4px 0 24px 0" }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Bilan du stage</h2>
+          {/* Radar + étoiles moyennes */}
+          {isTournoi && matches.length > 0 && (() => {
+            const allKeys = [...NOTE_KEYS_MENTALE, ...NOTE_KEYS_TECHNIQUE];
+            const allLabels = [...NOTE_MENTALE, ...NOTE_TECHNIQUE];
+            const avgs = allKeys.map((k,i) => {
+              const vals = matches.map(m=>m[k]||0).filter(v=>v>0);
+              return { key:k, label:allLabels[i], value: vals.length>0 ? vals.reduce((a,b)=>a+b,0)/vals.length : 0 };
+            });
+            const radarData = avgs.filter(a=>a.value>0);
+            if (radarData.length === 0) return null;
+            return (
+              <div style={{ display:"flex", gap:20, alignItems:"center", marginBottom:16, padding:"12px 16px", border:`1px solid ${T.border}`, borderRadius:8, flexWrap:"wrap" }}>
+                <RadarChart data={radarData} size={180}/>
+                <div style={{ flex:1, minWidth:160 }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:T.muted, marginBottom:6, letterSpacing:0.5 }}>MOYENNES SUR {matches.length} MATCH{matches.length>1?"S":""}</div>
+                  {avgs.filter(a=>a.value>0).map(a => (
+                    <div key={a.key} style={{ display:"flex", justifyContent:"space-between", fontSize:11, padding:"2px 0", borderBottom:`1px solid ${T.mid}` }}>
+                      <span style={{ color:T.muted }}>{a.label}</span>
+                      <span style={{ fontWeight:700, color:T.dark }}>{a.value.toFixed(1)} / 5</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
             {[["Technique",player.bilan_technique],["Physique",player.bilan_physique],["Mental",player.bilan_mental],["Tactique",player.bilan_tactique]].filter(([,v])=>v).map(([l,v])=>(
               <div key={l} style={{ background:T.surface, borderRadius:6, padding:"10px 12px" }}>
@@ -487,6 +635,10 @@ function PrintView({ playerId, onClose }) {
           </div>
         </div>
       )}
+      {/* Pied de page */}
+      <div style={{ marginTop:32, borderTop:`1px solid ${T.mid}`, paddingTop:10, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>
+        HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com
+      </div>
 
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
@@ -560,23 +712,9 @@ function PrintView({ playerId, onClose }) {
           </div>
         </div>
       )}
-
-      <div style={{ padding:"0 32px", marginTop:0 }}>
-        {/* En-tête de bas avec logo + infos */}
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderTop:`1px solid ${T.mid}`, marginBottom:8 }}>
-          <img src={HDN_LOGO} alt="HDN" style={{ height:28, objectFit:"contain" }}/>
-          <div style={{ fontSize:10, color:T.muted, textAlign:"right" }}>
-            <div style={{ fontWeight:600 }}>Bilan de stage — {fullName}</div>
-            <div>Généré le {new Date().toLocaleDateString("fr-FR")}</div>
-          </div>
-        </div>
-        {/* Texte pied de page */}
-        <div style={{ textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8, marginBottom:6 }}>
-          HDN ACADEMY 1997 — NÎMES — www.hdnacademy.com
-        </div>
-        {/* Bandes colorées */}
-        <div style={{ height:4, background:T.blue }}></div>
-        <div style={{ height:2, background:T.red }}></div>
+      {/* Pied de page */}
+      <div style={{ marginTop:32, borderTop:`1px solid ${T.mid}`, paddingTop:10, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>
+        HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com
       </div>
 
       <div className="no-print" style={{ marginTop:24, display:"flex", gap:12 }}>
@@ -719,6 +857,7 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
       {/* BILAN TAB */}
       {tab==="bilan" && (
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {matches.length > 0 && <MatchStats matches={matches}/>}
           {editingBilan
             ? <BilanForm player={player} onSave={saveBilan} onCancel={()=>setEditingBilan(false)} saving={saving}/>
             : (
