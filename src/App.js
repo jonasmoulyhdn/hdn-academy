@@ -434,7 +434,7 @@ function PrintView({ playerId, onClose }) {
 
       {/* Stats matchs — tournoi only */}
       {isTournoi && (
-        <div style={{ display: "flex", marginBottom: 24, border: `1px solid ${T.border}`, borderRadius: 8, overflow: "hidden" }}>
+        <div className="print-bilan" style={{ display: "flex", marginBottom: 16, border: `1px solid ${T.border}`, borderRadius: 8, overflow: "hidden" }}>
           {[{l:"Matchs",v:matches.length,c:T.dark},{l:"Victoires",v:wins,c:T.blue},{l:"Défaites",v:losses,c:T.red},{l:"Ratio",v:matches.length>0?`${Math.round(wins/matches.length*100)}%`:"–",c:T.blue}].map((s,i)=>(
             <div key={i} style={{ flex:1, textAlign:"center", padding:"12px 8px", borderRight: i<3?`1px solid ${T.border}`:"none" }}>
               <div style={{ fontFamily:"Georgia,serif", fontSize:24, fontWeight:700, color:s.c }}>{s.v}</div>
@@ -446,7 +446,7 @@ function PrintView({ playerId, onClose }) {
 
       {/* Bilan stage */}
       {(player.bilan_technique || player.bilan_physique || player.bilan_mental || player.bilan_tactique || player.points_forts || player.axes_amelioration || player.bilan_global) && (
-        <div style={{ marginBottom: 24 }}>
+        <div className="print-bilan" style={{ marginBottom: 24 }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Bilan du stage</h2>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
             {[["Technique",player.bilan_technique],["Physique",player.bilan_physique],["Mental",player.bilan_mental],["Tactique",player.bilan_tactique]].filter(([,v])=>v).map(([l,v])=>(
@@ -475,40 +475,48 @@ function PrintView({ playerId, onClose }) {
       {isTournoi && matches.length > 0 && (
         <div className="print-page-break">
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Journal des matchs</h2>
-          {matches.map((m,i) => (
-            <div key={m.id} className="print-keep" style={{ marginBottom:16, border:`1px solid ${T.border}`, borderRadius:8, overflow:"hidden" }}>
-              <div style={{ background: m.resultat==="Victoire"?T.blue:m.resultat==="Défaite"?T.red:T.mid, padding:"7px 14px", display:"flex", justifyContent:"space-between" }}>
-                <div style={{ color:"#fff", fontWeight:700, fontSize:13 }}>Match {i+1} — {m.round}</div>
-                <div style={{ color:"#fff", fontSize:12 }}>{m.date && new Date(m.date+"T00:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>
-              </div>
-              <div style={{ padding:"10px 14px", display:"flex", flexDirection:"column", gap:8 }}>
-                <div style={{ display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
-                  <span style={{ fontWeight:700 }}>vs {m.adversaire_nom||"–"}</span>
-                  <Badge color={T.blue}>{m.adversaire_classement}</Badge>
-                  <span style={{ fontFamily:"Georgia,serif", fontWeight:800, fontSize:16 }}>{m.score||"–"}</span>
-                  {m.resultat && <Badge color={m.resultat==="Victoire"?T.blue:T.red}>{m.resultat}</Badge>}
-                </div>
-                {([...NOTE_MENTALE,...NOTE_TECHNIQUE].some((_,idx) => (m[[...NOTE_KEYS_MENTALE,...NOTE_KEYS_TECHNIQUE][idx]]||0) > 0)) && (
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-                    <div>
-                      {NOTE_MENTALE.map((l,i)=> m[NOTE_KEYS_MENTALE[i]]>0 && <div key={l} style={{ display:"flex", justifyContent:"space-between", fontSize:12, padding:"2px 0" }}>
-                        <span style={{ color:T.muted }}>{l}</span><StarsReadonly value={m[NOTE_KEYS_MENTALE[i]]}/>
-                      </div>)}
+          {Array.from({length: Math.ceil(matches.length / 2)}, (_, pageIdx) => (
+            <div key={pageIdx} className="print-match-pair" style={{ display:"grid", gridTemplateColumns: matches.length > 1 ? "1fr 1fr" : "1fr", gap:12, marginBottom:0 }}>
+              {matches.slice(pageIdx*2, pageIdx*2+2).map((m,i) => {
+                const globalIdx = pageIdx*2+i;
+                return (
+                  <div key={m.id} className="print-match" style={{ border:`1px solid ${T.border}`, borderRadius:8, overflow:"hidden", fontSize:11 }}>
+                    <div style={{ background: m.resultat==="Victoire"?T.blue:m.resultat==="Défaite"?T.red:T.mid, padding:"6px 12px", display:"flex", justifyContent:"space-between" }}>
+                      <div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Match {globalIdx+1} — {m.round}</div>
+                      <div style={{ color:"#fff", fontSize:11 }}>{m.date && new Date(m.date+"T00:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>
                     </div>
-                    <div>
-                      {NOTE_TECHNIQUE.map((l,i)=> m[NOTE_KEYS_TECHNIQUE[i]]>0 && <div key={l} style={{ display:"flex", justifyContent:"space-between", fontSize:12, padding:"2px 0" }}>
-                        <span style={{ color:T.muted }}>{l}</span><StarsReadonly value={m[NOTE_KEYS_TECHNIQUE[i]]}/>
-                      </div>)}
+                    <div style={{ padding:"8px 12px", display:"flex", flexDirection:"column", gap:6 }}>
+                      <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+                        <span style={{ fontWeight:700, fontSize:13 }}>vs {m.adversaire_nom||"–"}</span>
+                        <Badge color={T.blue}>{m.adversaire_classement}</Badge>
+                        <span style={{ fontFamily:"Georgia,serif", fontWeight:800, fontSize:15 }}>{m.score||"–"}</span>
+                        {m.resultat && <Badge color={m.resultat==="Victoire"?T.blue:T.red}>{m.resultat}</Badge>}
+                      </div>
+                      {([...NOTE_MENTALE,...NOTE_TECHNIQUE].some((_,idx) => (m[[...NOTE_KEYS_MENTALE,...NOTE_KEYS_TECHNIQUE][idx]]||0) > 0)) && (
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:4, borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>
+                          <div>
+                            {NOTE_MENTALE.map((l,ni)=> m[NOTE_KEYS_MENTALE[ni]]>0 && <div key={l} style={{ display:"flex", justifyContent:"space-between", fontSize:10, padding:"1px 0" }}>
+                              <span style={{ color:T.muted }}>{l}</span><StarsReadonly value={m[NOTE_KEYS_MENTALE[ni]]}/>
+                            </div>)}
+                          </div>
+                          <div>
+                            {NOTE_TECHNIQUE.map((l,ni)=> m[NOTE_KEYS_TECHNIQUE[ni]]>0 && <div key={l} style={{ display:"flex", justifyContent:"space-between", fontSize:10, padding:"1px 0" }}>
+                              <span style={{ color:T.muted }}>{l}</span><StarsReadonly value={m[NOTE_KEYS_TECHNIQUE[ni]]}/>
+                            </div>)}
+                          </div>
+                        </div>
+                      )}
+                      {m.preparation && <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4 }}><div style={{ fontSize:9, fontWeight:700, color:T.blue, marginBottom:2 }}>PRÉPARATION</div><div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.preparation}</div></div>}
+                      {m.debrief && <div><div style={{ fontSize:9, fontWeight:700, color:T.red, marginBottom:2 }}>DÉBRIEF</div><div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.debrief}</div></div>}
+                      {m.notes && <div style={{ fontSize:10, color:T.muted, fontStyle:"italic", borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>{m.notes}</div>}
                     </div>
                   </div>
-                )}
-                {m.preparation && <div><div style={{ fontSize:10, fontWeight:700, color:T.blue, marginBottom:2 }}>PRÉPARATION</div><div style={{ fontSize:12, whiteSpace:"pre-wrap" }}>{m.preparation}</div></div>}
-                {m.debrief && <div><div style={{ fontSize:10, fontWeight:700, color:T.red, marginBottom:2 }}>DÉBRIEF</div><div style={{ fontSize:12, whiteSpace:"pre-wrap" }}>{m.debrief}</div></div>}
-                {m.notes && <div style={{ fontSize:11, color:T.muted, fontStyle:"italic" }}>{m.notes}</div>}
-              </div>
+                );
+              })}
             </div>
           ))}
         </div>
+       </div>
       )}
 
       <div style={{ marginTop:32, borderTop:`1px solid ${T.border}`, paddingTop:10, display:"flex", justifyContent:"space-between", fontSize:10, color:T.muted }}>
@@ -760,8 +768,8 @@ export default function HDNCarnetStage() {
         </div>
         {view==="detail" && currentPlayerId && (
           <div style={{ display:"flex", gap:8 }}>
-            <Btn small variant="ghost" style={{ border:"1px solid rgba(255,255,255,0.5)",color:"#fff" }} onClick={()=>setView("print")}>🖨 Bilan</Btn>
-            <Btn small variant="ghost" style={{ border:"1px solid rgba(255,255,255,0.3)",color:"rgba(255,255,255,0.6)" }} onClick={()=>deletePlayer(currentPlayerId)}>Supprimer</Btn>
+            <Btn small variant="red" onClick={()=>setView("print")}>🖨 Bilan PDF</Btn>
+            <Btn small variant="secondary" onClick={()=>deletePlayer(currentPlayerId)}>🗑 Supprimer</Btn>
           </div>
         )}
       </div>
