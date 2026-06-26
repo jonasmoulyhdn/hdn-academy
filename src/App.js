@@ -397,12 +397,12 @@ function PrintView({ playerId, onClose }) {
   }
 `}</style>
 
-      {/* Top action bar */}
-      <div className="no-print" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, padding:"12px 16px", background:T.bluePale, borderRadius:8, border:`1px solid ${T.blue}30` }}>
-        <div style={{ fontSize:13, color:T.blue, fontWeight:600 }}>Aperçu avant impression — {player.prenom} {player.nom}</div>
+      {/* Top action bar - sticky */}
+      <div className="no-print" style={{ position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24, padding:"12px 16px", background:T.blue, borderRadius:8, boxShadow:"0 2px 12px rgba(0,43,73,0.3)" }}>
+        <div style={{ fontSize:13, color:"#fff", fontWeight:600 }}>📄 {player.prenom} {player.nom} — Aperçu bilan</div>
         <div style={{ display:"flex", gap:10 }}>
-          <Btn onClick={onClose} variant="secondary" small>← Retour</Btn>
-          <Btn onClick={() => window.print()} variant="primary" small>🖨 Imprimer / Exporter PDF</Btn>
+          <Btn onClick={onClose} variant="ghost" small style={{ border:"1px solid rgba(255,255,255,0.4)", color:"#fff" }}>← Retour</Btn>
+          <Btn onClick={() => window.print()} variant="red" small>🖨 Imprimer / PDF</Btn>
         </div>
       </div>
 
