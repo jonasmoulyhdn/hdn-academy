@@ -452,7 +452,7 @@ function PrintView({ playerId, onClose }) {
 
       {/* Bilan stage */}
       {(player.bilan_technique || player.bilan_physique || player.bilan_mental || player.bilan_tactique || player.points_forts || player.axes_amelioration || player.bilan_global) && (
-        <div className="print-bilan" style={{ marginBottom: 24 }}>
+        <div className="print-bilan" style={{ marginBottom: 24, marginTop: -24, paddingTop: 0 }}>
           <div style={{ height:10, background:T.blue, margin:"0 -32px 0 -32px" }}></div>
           <div style={{ height:3, background:T.red, margin:"0 -32px 16px -32px" }}></div>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Bilan du stage</h2>
@@ -481,9 +481,9 @@ function PrintView({ playerId, onClose }) {
 
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
-        <div className="print-page-break">
+        <div className="print-page-break" style={{ marginTop: 0, paddingTop: 0 }}>
           {/* Bandes top */}
-          <div style={{ height:10, background:T.blue, margin:"0 -32px 0 -32px" }}></div>
+          <div style={{ height:10, background:T.blue, margin:"-24px -32px 0 -32px" }}></div>
           <div style={{ height:3, background:T.red, margin:"0 -32px 16px -32px" }}></div>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Journal des matchs</h2>
           {/* Stats sous le titre */}
@@ -530,18 +530,18 @@ function PrintView({ playerId, onClose }) {
                           </div>
                         </div>
                       )}
-                      <div style={{ display:"flex", flexDirection:"column", flex:1 }}>
-                        <div style={{ flex:1, borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4 }}>
+                      <div>
+                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4, minHeight:60 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.blue, marginBottom:2, letterSpacing:0.5 }}>PRÉPARATION</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:36 }}>{m.preparation||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.preparation||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
-                        <div style={{ flex:1, borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4 }}>
+                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4, minHeight:60 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.red, marginBottom:2, letterSpacing:0.5 }}>DÉBRIEF</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:36 }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
-                        <div style={{ flex:1, borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>
+                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, minHeight:44 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.muted, marginBottom:2, letterSpacing:0.5 }}>COMMENTAIRE</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted, minHeight:24 }}>{m.notes||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted }}>{m.notes||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
                       </div>
                     </div>
