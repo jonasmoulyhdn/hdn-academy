@@ -516,7 +516,6 @@ function PrintView({ playerId, onClose }) {
             </div>
           ))}
         </div>
-       </div>
       )}
 
       <div style={{ marginTop:32, borderTop:`1px solid ${T.border}`, paddingTop:10, display:"flex", justifyContent:"space-between", fontSize:10, color:T.muted }}>
