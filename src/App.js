@@ -391,15 +391,17 @@ function PrintView({ playerId, onClose }) {
   .print-stripe-bottom { display: none; }
   @media print {
     .no-print { display: none !important; }
-    @page { size: A4 portrait; margin: 13mm 12mm 13mm 12mm; }
+    @page {
+      size: A4 portrait;
+      margin: 18mm 12mm 18mm 12mm;
+      border-top: 10px solid #002B49;
+      border-bottom: 10px solid #002B49;
+    }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
-    .print-stripe-top { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; }
-    .print-stripe-top .s-blue { height: 10px; background: #002B49; }
-    .print-stripe-top .s-red { height: 3px; background: #F9423A; }
-    .print-stripe-bottom { position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; }
-    .print-stripe-bottom .s-red { height: 3px; background: #F9423A; }
-    .print-stripe-bottom .s-blue { height: 10px; background: #002B49; }
-    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: -13mm -12mm; }
+    .print-stripe-top { display: block !important; height: 3px; background: #F9423A; margin: -18mm -12mm 14mm -12mm; }
+    .print-stripe-bottom-wrapper { display: block !important; }
+    .print-stripe-bottom { display: block !important; height: 3px; background: #F9423A; margin: 14mm -12mm -18mm -12mm; }
+    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: -18mm -12mm; }
     .print-page-break { page-break-before: always; break-before: page; }
     .print-bilan { page-break-inside: avoid; break-inside: avoid; }
     .print-match-pair { page-break-after: always; break-after: page; page-break-inside: avoid; }
@@ -407,15 +409,10 @@ function PrintView({ playerId, onClose }) {
   }
 `}</style>
 
-      {/* Fixed stripes - repeat on every printed page */}
-      <div className="print-stripe-top">
-        <div className="s-blue"></div>
-        <div className="s-red"></div>
-      </div>
-      <div className="print-stripe-bottom">
-        <div className="s-red"></div>
-        <div className="s-blue"></div>
-      </div>
+      {/* Red stripe just below the blue @page border-top */}
+      <div className="print-stripe-top"></div>
+      {/* Red stripe just above the blue @page border-bottom */}
+      <div className="print-stripe-bottom"></div>
 
       {/* Top action bar - sticky */}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24, margin:"0 0 0 0", padding:"12px 32px", background:T.blue, borderRadius:0, boxShadow:"0 2px 12px rgba(0,43,73,0.3)" }}>
@@ -552,7 +549,7 @@ function PrintView({ playerId, onClose }) {
                         </div>
                         <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.red, marginBottom:2, letterSpacing:0.5 }}>DÉBRIEF</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:120 }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:150 }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
                         <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.muted, marginBottom:2, letterSpacing:0.5 }}>COMMENTAIRE</div>
