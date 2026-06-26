@@ -195,7 +195,7 @@ function MatchCard({ match, index, onEdit, onDelete }) {
             <div style={{ fontSize: 11, fontWeight: 700, color: T.red, marginBottom: 3 }}>DÉBRIEF</div>
             <div style={{ fontSize: 13, whiteSpace: "pre-wrap" }}>{match.debrief}</div>
           </div>}
-          {match.notes && <div style={{ fontSize: 13, color: T.muted, fontStyle: "italic" }}>{match.notes}</div>}
+          {match.notes && <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:8 }}><div style={{ fontSize:11, fontWeight:700, color:T.muted, marginBottom:3, letterSpacing:0.5 }}>COMMENTAIRE</div><div style={{ fontSize:13, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted }}>{match.notes}</div></div>}
         </div>
       )}
     </div>
@@ -389,9 +389,10 @@ function PrintView({ playerId, onClose }) {
       <style>{`
   @media print {
     .no-print { display: none !important; }
-    @page { margin: 0; size: A4; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-cover { page-break-after: always !important; break-after: page !important; min-height: 100vh !important; }
+    @page { margin: 0; size: A4 portrait; }
+    @page :not(:first) { margin: 1.2cm; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
+    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; }
     .print-page-break { page-break-before: always; break-before: page; }
     .print-bilan { page-break-inside: avoid; break-inside: avoid; }
     .print-match-pair { page-break-after: always; break-after: page; page-break-inside: avoid; }
@@ -410,21 +411,22 @@ function PrintView({ playerId, onClose }) {
 
       {/* ── PAGE DE GARDE ── */}
       <div className="print-cover" style={{
-        minHeight: "100vh", display: "flex", flexDirection: "column",
+        height: "297mm", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         background: T.white, pageBreakAfter: "always", breakAfter: "page",
-        padding: "60px 40px", textAlign: "center", position: "relative",
+        padding: "48px 40px", textAlign: "center", position: "relative",
+        boxSizing: "border-box", overflow: "hidden",
       }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 12, background: T.blue }}></div>
         <div style={{ position: "absolute", top: 12, left: 0, right: 0, height: 4, background: T.red }}></div>
-        <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 120, objectFit: "contain", marginBottom: 32 }} />
+        <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 90, objectFit: "contain", marginBottom: 20 }} />
         {player.photo
-          ? <img src={player.photo} alt={fullName} style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", border: `4px solid ${T.blue}`, marginBottom: 28, boxShadow: "0 4px 20px rgba(0,43,73,0.2)" }}/>
-          : <div style={{ width: 140, height: 140, borderRadius: "50%", background: T.bluePale, border: `4px solid ${T.blue}`, marginBottom: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: T.blue }}>
+          ? <img src={player.photo} alt={fullName} style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: `4px solid ${T.blue}`, marginBottom: 20, boxShadow: "0 4px 20px rgba(0,43,73,0.2)" }}/>
+          : <div style={{ width: 120, height: 120, borderRadius: "50%", background: T.bluePale, border: `4px solid ${T.blue}`, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: T.blue }}>
               {fullName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
             </div>
         }
-        <h1 style={{ margin: "0 0 8px 0", fontFamily: "Georgia, serif", fontSize: 36, color: T.dark, letterSpacing: 1 }}>{fullName}</h1>
+        <h1 style={{ margin: "0 0 8px 0", fontFamily: "Georgia, serif", fontSize: 30, color: T.dark, letterSpacing: 1 }}>{fullName}</h1>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
           <Badge color={T.blue}>{player.classement}</Badge>
           {player.age && <Badge color={T.muted}>{player.age} ans</Badge>}
@@ -432,7 +434,7 @@ function PrintView({ playerId, onClose }) {
           <Badge color={isTournoi ? T.red : T.blue}>{isTournoi ? "🎾 Tennis + Tournois" : "🏋️ Stage uniquement"}</Badge>
         </div>
         {player.objectif && (
-          <div style={{ maxWidth: 480, background: T.bluePale, border: `1px solid ${T.blue}30`, borderRadius: 12, padding: "16px 24px", marginBottom: 32, fontSize: 15, fontStyle: "italic", color: T.dark, lineHeight: 1.6 }}>
+          <div style={{ maxWidth: 480, background: T.bluePale, border: `1px solid ${T.blue}30`, borderRadius: 12, padding: "16px 24px", marginBottom: 20, fontSize: 13, fontStyle: "italic", color: T.dark, lineHeight: 1.6 }}>
             « {player.objectif} »
           </div>
         )}
@@ -498,16 +500,18 @@ function PrintView({ playerId, onClose }) {
                 const globalIdx = pageIdx*2+i;
                 return (
                   <div key={m.id} className="print-match" style={{ border:`1px solid ${T.border}`, borderRadius:8, overflow:"hidden", fontSize:11 }}>
-                    <div style={{ background: m.resultat==="Victoire"?T.blue:m.resultat==="Défaite"?T.red:T.mid, padding:"6px 12px", display:"flex", justifyContent:"space-between" }}>
+                    <div style={{ background: m.resultat==="Victoire"?T.blue:m.resultat==="Défaite"?T.red:T.mid, padding:"6px 12px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                       <div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Match {globalIdx+1} — {m.round}</div>
                       <div style={{ color:"#fff", fontSize:11 }}>{m.date && new Date(m.date+"T00:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>
                     </div>
                     <div style={{ padding:"8px 12px", display:"flex", flexDirection:"column", gap:6 }}>
-                      <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+                      <div style={{ display:"flex", gap:6, alignItems:"flex-start", flexWrap:"wrap" }}>
                         <span style={{ fontWeight:700, fontSize:13 }}>vs {m.adversaire_nom||"–"}</span>
                         <Badge color={T.blue}>{m.adversaire_classement}</Badge>
-                        <span style={{ fontFamily:"Georgia,serif", fontWeight:800, fontSize:15 }}>{m.score||"–"}</span>
+                      </div>
+                      <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
                         {m.resultat && <Badge color={m.resultat==="Victoire"?T.blue:T.red}>{m.resultat}</Badge>}
+                        <span style={{ fontFamily:"Georgia,serif", fontWeight:800, fontSize:14, color:T.dark }}>{m.score||"–"}</span>
                       </div>
                       {([...NOTE_MENTALE,...NOTE_TECHNIQUE].some((_,idx) => (m[[...NOTE_KEYS_MENTALE,...NOTE_KEYS_TECHNIQUE][idx]]||0) > 0)) && (
                         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:4, borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>
@@ -525,7 +529,7 @@ function PrintView({ playerId, onClose }) {
                       )}
                       {m.preparation && <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4 }}><div style={{ fontSize:9, fontWeight:700, color:T.blue, marginBottom:2 }}>PRÉPARATION</div><div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.preparation}</div></div>}
                       {m.debrief && <div><div style={{ fontSize:9, fontWeight:700, color:T.red, marginBottom:2 }}>DÉBRIEF</div><div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.debrief}</div></div>}
-                      {m.notes && <div style={{ fontSize:10, color:T.muted, fontStyle:"italic", borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>{m.notes}</div>}
+                      {m.notes && <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4 }}><div style={{ fontSize:9, fontWeight:700, color:T.muted, marginBottom:2, letterSpacing:0.5 }}>COMMENTAIRE</div><div style={{ fontSize:11, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted }}>{m.notes}</div></div>}
                     </div>
                   </div>
                 );
