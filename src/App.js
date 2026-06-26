@@ -385,7 +385,7 @@ function PrintView({ playerId, onClose }) {
   }
 
   return (
-    <div style={{ padding: "24px 32px", maxWidth: 740, margin: "0 auto", fontFamily: "system-ui", background: "#fff" }}>
+    <div style={{ maxWidth: 740, margin: "0 auto", fontFamily: "system-ui", background: "#fff" }}>
       <style>{`
   @media print {
     .no-print { display: none !important; }
@@ -401,7 +401,7 @@ function PrintView({ playerId, onClose }) {
 `}</style>
 
       {/* Top action bar - sticky */}
-      <div className="no-print" style={{ position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24, padding:"12px 16px", background:T.blue, borderRadius:8, boxShadow:"0 2px 12px rgba(0,43,73,0.3)" }}>
+      <div className="no-print" style={{ position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24, margin:"0 0 0 0", padding:"12px 32px", background:T.blue, borderRadius:0, boxShadow:"0 2px 12px rgba(0,43,73,0.3)" }}>
         <div style={{ fontSize:13, color:"#fff", fontWeight:600 }}>📄 {player.prenom} {player.nom} — Aperçu bilan</div>
         <div style={{ display:"flex", gap:10 }}>
           <Btn onClick={onClose} variant="ghost" small style={{ border:"1px solid rgba(255,255,255,0.4)", color:"#fff" }}>← Retour</Btn>
@@ -419,7 +419,7 @@ function PrintView({ playerId, onClose }) {
       }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 12, background: T.blue }}></div>
         <div style={{ position: "absolute", top: 12, left: 0, right: 0, height: 4, background: T.red }}></div>
-        <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 110, objectFit: "contain", marginBottom: 24 }} />
+        <img src={HDN_LOGO} alt="HDN Academy" style={{ height: 180, objectFit: "contain", marginBottom: 28 }} />
         {player.photo
           ? <img src={player.photo} alt={fullName} style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: `4px solid ${T.blue}`, marginBottom: 20, boxShadow: "0 4px 20px rgba(0,43,73,0.2)" }}/>
           : <div style={{ width: 120, height: 120, borderRadius: "50%", background: T.bluePale, border: `4px solid ${T.blue}`, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, fontWeight: 700, color: T.blue }}>
@@ -452,9 +452,10 @@ function PrintView({ playerId, onClose }) {
 
       {/* Bilan stage */}
       {(player.bilan_technique || player.bilan_physique || player.bilan_mental || player.bilan_tactique || player.points_forts || player.axes_amelioration || player.bilan_global) && (
-        <div className="print-bilan" style={{ marginBottom: 24, marginTop: -24, paddingTop: 0 }}>
-          <div style={{ height:10, background:T.blue, margin:"0 -32px 0 -32px" }}></div>
-          <div style={{ height:3, background:T.red, margin:"0 -32px 16px -32px" }}></div>
+        <div className="print-bilan" style={{ marginBottom: 0 }}>
+          <div style={{ height:10, background:T.blue }}></div>
+          <div style={{ height:3, background:T.red, marginBottom:16 }}></div>
+          <div style={{ padding:"16px 32px 24px 32px" }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Bilan du stage</h2>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
             {[["Technique",player.bilan_technique],["Physique",player.bilan_physique],["Mental",player.bilan_mental],["Tactique",player.bilan_tactique]].filter(([,v])=>v).map(([l,v])=>(
@@ -476,15 +477,17 @@ function PrintView({ playerId, onClose }) {
             <div style={{ fontSize:10, fontWeight:700, color:T.blue, marginBottom:6 }}>💬 SYNTHÈSE COACH</div>
             <div style={{ fontSize:13, fontStyle:"italic", whiteSpace:"pre-wrap" }}>{player.bilan_global}</div>
           </div>}
+          </div>
         </div>
       )}
 
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
-        <div className="print-page-break" style={{ marginTop: 0, paddingTop: 0 }}>
+        <div className="print-page-break">
           {/* Bandes top */}
-          <div style={{ height:10, background:T.blue, margin:"-24px -32px 0 -32px" }}></div>
-          <div style={{ height:3, background:T.red, margin:"0 -32px 16px -32px" }}></div>
+          <div style={{ height:10, background:T.blue }}></div>
+          <div style={{ height:3, background:T.red, marginBottom:16 }}></div>
+          <div style={{ padding:"16px 32px 24px 32px" }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Journal des matchs</h2>
           {/* Stats sous le titre */}
           {isTournoi && (
@@ -531,17 +534,17 @@ function PrintView({ playerId, onClose }) {
                         </div>
                       )}
                       <div>
-                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4, minHeight:60 }}>
+                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.blue, marginBottom:2, letterSpacing:0.5 }}>PRÉPARATION</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.preparation||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:72 }}>{m.preparation||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
-                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4, minHeight:60 }}>
+                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, marginBottom:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.red, marginBottom:2, letterSpacing:0.5 }}>DÉBRIEF</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap" }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", minHeight:96 }}>{m.debrief||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
-                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4, minHeight:44 }}>
+                        <div style={{ borderTop:`1px solid ${T.mid}`, paddingTop:4 }}>
                           <div style={{ fontSize:9, fontWeight:700, color:T.muted, marginBottom:2, letterSpacing:0.5 }}>COMMENTAIRE</div>
-                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted }}>{m.notes||<span style={{color:T.mid}}>–</span>}</div>
+                          <div style={{ fontSize:11, whiteSpace:"pre-wrap", fontStyle:"italic", color:T.muted, minHeight:48 }}>{m.notes||<span style={{color:T.mid}}>–</span>}</div>
                         </div>
                       </div>
                     </div>
@@ -550,10 +553,11 @@ function PrintView({ playerId, onClose }) {
               })}
             </div>
           ))}
+          </div>
         </div>
       )}
 
-      <div style={{ marginTop:32 }}>
+      <div style={{ padding:"0 32px", marginTop:0 }}>
         {/* En-tête de bas avec logo + infos */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderTop:`1px solid ${T.mid}`, marginBottom:8 }}>
           <img src={HDN_LOGO} alt="HDN" style={{ height:28, objectFit:"contain" }}/>
