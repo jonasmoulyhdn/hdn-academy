@@ -565,7 +565,7 @@ function PrintView({ playerId, onClose }) {
     @page { size: A4 portrait; margin: 0mm 12mm 0mm 12mm; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
     .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: 0 -12mm; }
-    .print-page-section { padding: 15mm 0; position: relative; min-height: 250mm; }
+    .print-page-section { padding: 14mm 0 14mm 0; position: relative; height: 297mm; box-sizing: border-box; }
     .print-page-section::before { content: ""; position: absolute; top: 0; left: -12mm; right: -12mm; height: 13px; background: linear-gradient(to bottom, #002B49 10px, #F9423A 10px, #F9423A 13px); }
     .print-page-section::after { content: ""; position: absolute; bottom: 0; left: -12mm; right: -12mm; height: 13px; background: linear-gradient(to top, #002B49 10px, #F9423A 10px, #F9423A 13px); }
     .print-page-break { page-break-before: always; break-before: page; }
@@ -680,7 +680,7 @@ function PrintView({ playerId, onClose }) {
           </div>}
           </div>
         </div>
-        <div style={{ position:"absolute", bottom:"15mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
+        <div style={{ position:"absolute", bottom:"18mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
         </div>
       )}
       {/* Matchs — tournoi only */}
@@ -753,7 +753,7 @@ function PrintView({ playerId, onClose }) {
             </div>
           ))}
           </div>
-        <div style={{ position:"absolute", bottom:"15mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
+        <div style={{ position:"absolute", bottom:"18mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
         </div>
       )}
       <div className="no-print" style={{ marginTop:24, display:"flex", gap:12 }}>
