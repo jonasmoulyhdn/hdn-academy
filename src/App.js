@@ -995,6 +995,8 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
   const [addingMatch, setAddingMatch] = useState(false);
   const [newMatch, setNewMatch] = useState(null);
   const [editingBilan, setEditingBilan] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editedPlayer, setEditedPlayer] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -1043,6 +1045,15 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
     } catch(e) { setError(e.message); } finally { setSaving(false); }
   }
 
+  async function saveProfile(data) {
+    setSaving(true);
+    try {
+      await api.updatePlayer(playerId, data);
+      setPlayer(p => ({...p, ...data}));
+      setEditingProfile(false);
+    } catch(e) { setError(e.message); } finally { setSaving(false); }
+  }
+
   if (loading) return <Spinner/>;
   if (!player) return <div style={{color:T.red}}>Introuvable.</div>;
   const fullName = `${player.prenom} ${player.nom}`.trim();
@@ -1086,8 +1097,52 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
         )}
       </div>
 
-      {/* Tabs */}
-      <div style={{ display:"flex", gap:0, background:T.surface, borderRadius:8, padding:4, border:`1px solid ${T.border}` }}>
+      {/* Edit profile modal */}
+      {editingProfile && editedPlayer && (
+        <div style={{ position:"fixed", top:0, left:0, right:0, bottom:0, background:"rgba(0,0,0,0.5)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ background:T.white, borderRadius:16, padding:28, width:"100%", maxWidth:500, maxHeight:"90vh", overflowY:"auto" }}>
+            <div style={{ fontWeight:700, fontSize:16, color:T.blue, marginBottom:20 }}>✏️ Modifier le profil</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <Field label="Prénom"><input style={inputStyle} value={editedPlayer.prenom||""} onChange={e=>setEditedPlayer(p=>({...p,prenom:e.target.value}))}/></Field>
+                <Field label="Nom"><input style={inputStyle} value={editedPlayer.nom||""} onChange={e=>setEditedPlayer(p=>({...p,nom:e.target.value}))}/></Field>
+                <Field label="Âge"><input type="number" style={inputStyle} value={editedPlayer.age||""} onChange={e=>setEditedPlayer(p=>({...p,age:e.target.value}))}/></Field>
+                <Field label="Classement">
+                  <select style={inputStyle} value={editedPlayer.classement||"NC"} onChange={e=>setEditedPlayer(p=>({...p,classement:e.target.value}))}>
+                    {CLASSEMENTS.map(c=><option key={c}>{c}</option>)}
+                  </select>
+                </Field>
+              </div>
+              <Field label="Club"><input style={inputStyle} value={editedPlayer.club||""} onChange={e=>setEditedPlayer(p=>({...p,club:e.target.value}))}/></Field>
+              <Field label="Formule">
+                <div style={{ display:"flex", gap:10 }}>
+                  {[["tennis_tournoi","🎾 Tennis + Tournois"],["stage_uniquement","🏋️ Stage uniquement"]].map(([val,label]) => (
+                    <button key={val} onClick={() => setEditedPlayer(p=>({...p,type_stage:val}))} style={{
+                      flex:1, padding:"8px", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600,
+                      border:`2px solid ${editedPlayer.type_stage===val?T.blue:T.border}`,
+                      background:editedPlayer.type_stage===val?T.bluePale:T.white,
+                      color:editedPlayer.type_stage===val?T.blue:T.muted,
+                    }}>{label}</button>
+                  ))}
+                </div>
+              </Field>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:12 }}>
+                <div style={{ flex:"1 1 140px" }}><Field label="Début du stage"><input type="date" style={inputStyle} value={editedPlayer.date_debut||""} onChange={e=>setEditedPlayer(p=>({...p,date_debut:e.target.value}))}/></Field></div>
+                <div style={{ flex:"1 1 140px" }}><Field label="Fin du stage"><input type="date" style={inputStyle} value={editedPlayer.date_fin||""} onChange={e=>setEditedPlayer(p=>({...p,date_fin:e.target.value}))}/></Field></div>
+              </div>
+              <Field label="Objectif"><textarea style={{...taStyle,minHeight:54}} value={editedPlayer.objectif||""} onChange={e=>setEditedPlayer(p=>({...p,objectif:e.target.value}))}/></Field>
+            </div>
+            <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:20 }}>
+              <Btn variant="secondary" onClick={() => setEditingProfile(false)}>Annuler</Btn>
+              <Btn variant="primary" onClick={() => saveProfile(editedPlayer)} disabled={saving}>{saving?"Sauvegarde...":"Enregistrer"}</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs + edit profile button */}
+      <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+      <div style={{ flex:1, display:"flex", gap:0, background:T.surface, borderRadius:8, padding:4, border:`1px solid ${T.border}` }}>
         {(isTournoi ? [["matchs","🎾 Matchs"],["bilan","📋 Bilan"]] : [["bilan","📋 Bilan"]]).map(([key,label])=>(
           <button key={key} onClick={()=>setTab(key)} style={{
             flex:1, padding:"8px 16px", borderRadius:6, border:"none", cursor:"pointer",
@@ -1097,6 +1152,8 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
             boxShadow: tab===key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
           }}>{label}</button>
         ))}
+      </div>
+      <Btn small variant="ghost" onClick={() => { setEditedPlayer({...player}); setEditingProfile(true); }}>✏️ Profil</Btn>
       </div>
 
       {/* MATCHS TAB */}
