@@ -561,25 +561,85 @@ function printBilan(player, matches, fullName, wins, losses, isTournoi, logo) {
 
   // Cover page
   const cover = `
-    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;position:relative;padding:20mm 10mm;box-sizing:border-box">
-      <div style="position:absolute;top:0;left:-15mm;right:-15mm;height:10px;background:#002B49"></div>
-      <div style="position:absolute;top:10px;left:-15mm;right:-15mm;height:3px;background:#F9423A"></div>
-      <img src="${logo}" style="height:120px;margin-bottom:24px"/>
-      ${player.photo ? `<img src="${player.photo}" style="width:150px;height:150px;border-radius:50%;object-fit:cover;border:4px solid #002B49;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,43,73,0.2)"/>` : `<div style="width:150px;height:150px;border-radius:50%;background:#E6EEF4;border:4px solid #002B49;margin-bottom:20px;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;color:#002B49">${fullName.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`}
-      <h1 style="margin:0 0 8px;font-family:Georgia,serif;font-size:32px;color:#0D1F2D">${fullName}</h1>
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
-        <span style="border:1px solid #002B49;border-radius:4px;padding:2px 8px;font-size:11px;color:#002B49;font-weight:700">${player.classement||'NC'}</span>
-        ${player.age ? `<span style="border:1px solid #888;border-radius:4px;padding:2px 8px;font-size:11px;color:#888;font-weight:700">${player.age} ANS</span>` : ''}
-        ${player.club ? `<span style="border:1px solid #888;border-radius:4px;padding:2px 8px;font-size:11px;color:#888;font-weight:700">${player.club}</span>` : ''}
-        <span style="border:1px solid ${isTournoi?'#F9423A':'#002B49'};border-radius:4px;padding:2px 8px;font-size:11px;color:${isTournoi?'#F9423A':'#002B49'};font-weight:700">${isTournoi?'🎾 TENNIS + TOURNOIS':'🏋️ STAGE UNIQUEMENT'}</span>
+    <div style="width:100%;height:297mm;display:flex;page-break-after:always;overflow:hidden;box-sizing:border-box;font-family:system-ui,sans-serif">
+
+      <!-- LEFT: Blue vertical band -->
+      <div style="width:36%;background:#002B49;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:20mm 0;position:relative;overflow:hidden">
+        <!-- HDN watermark in background -->
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);font-family:Georgia,serif;font-size:88px;font-weight:700;color:rgba(255,255,255,0.04);white-space:nowrap;letter-spacing:-2px;pointer-events:none">HDN</div>
+        <!-- Decorative circle -->
+        <div style="position:absolute;bottom:-60px;right:-60px;width:180px;height:180px;border-radius:50%;border:1px solid rgba(249,66,58,0.15)"></div>
+        <div style="position:absolute;top:-40px;left:-40px;width:140px;height:140px;border-radius:50%;border:1px solid rgba(255,255,255,0.05)"></div>
+        <!-- Top red stripe -->
+        <div style="position:absolute;top:0;left:0;right:0;height:5px;background:#F9423A"></div>
+
+        <!-- HDN Academy vertical text top -->
+        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <img src="${logo}" style="height:64px;object-fit:contain;filter:brightness(0) invert(1);opacity:0.9"/>
+          <div style="width:24px;height:2px;background:#F9423A;margin-top:4px"></div>
+        </div>
+
+        <!-- Vertical text -->
+        <div style="position:relative;z-index:2;writing-mode:vertical-rl;transform:rotate(180deg);font-family:Georgia,serif;font-size:11px;font-weight:700;color:rgba(255,255,255,0.25);letter-spacing:4px;text-transform:uppercase">BILAN DE STAGE · 2026</div>
+
+        <!-- Bottom info -->
+        <div style="position:relative;z-index:2;text-align:center">
+          <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:2px">NÎMES · 1997</div>
+        </div>
+
+        <!-- Bottom red stripe -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:#F9423A"></div>
       </div>
-      ${player.objectif ? `<div style="max-width:440px;background:#E6EEF4;border-radius:10px;padding:14px 20px;margin-bottom:24px;font-size:13px;font-style:italic;color:#0D1F2D">« ${player.objectif} »</div>` : ''}
-      <div style="width:50px;height:3px;background:#F9423A;border-radius:2px;margin-bottom:16px"></div>
-      <div style="font-size:12px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Bilan de stage</div>
-      <div style="font-size:12px;color:#888">${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
-      <div style="position:absolute;bottom:20px;font-size:10px;color:#aaa;letter-spacing:1px">HDN ACADEMY — NÎMES — 1997</div>
-      <div style="position:absolute;bottom:3px;left:-15mm;right:-15mm;height:3px;background:#F9423A"></div>
-      <div style="position:absolute;bottom:0;left:-15mm;right:-15mm;height:3px;background:#002B49"></div>
+
+      <!-- RIGHT: White content -->
+      <div style="flex:1;background:#FAFAFA;display:flex;flex-direction:column;justify-content:center;padding:20mm 14mm;position:relative;overflow:hidden">
+
+        <!-- HDN logo watermark in background -->
+        <div style="position:absolute;bottom:-20px;right:-30px;font-family:Georgia,serif;font-size:140px;font-weight:700;color:rgba(0,43,73,0.03);line-height:1;pointer-events:none;letter-spacing:-4px">HDN</div>
+
+        <!-- Top label -->
+        <div style="font-size:9px;color:#F9423A;letter-spacing:4px;font-weight:700;text-transform:uppercase;margin-bottom:28px">Bilan de stage</div>
+
+        <!-- Photo + name block -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+          ${player.photo
+            ? `<div style="width:90px;height:90px;border-radius:50%;overflow:hidden;border:4px solid #002B49;flex-shrink:0"><img src="${player.photo}" style="width:100%;height:100%;object-fit:cover"/></div>`
+            : `<div style="width:90px;height:90px;border-radius:50%;background:#E6EEF4;border:4px solid #002B49;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#002B49;font-family:Georgia,serif">${fullName.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`
+          }
+          <div>
+            <div style="font-family:Georgia,serif;font-size:30px;font-weight:700;color:#002B49;line-height:1;letter-spacing:-0.5px">${fullName}</div>
+            <div style="height:3px;background:#F9423A;width:40px;margin:10px 0"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="background:#002B49;color:#fff;font-size:10px;padding:3px 10px;border-radius:4px;font-weight:700">${player.classement||'NC'}</span>
+              ${player.age ? `<span style="background:#E6EEF4;color:#002B49;font-size:10px;padding:3px 10px;border-radius:4px">${player.age} ans</span>` : ''}
+              ${player.club ? `<span style="background:#E6EEF4;color:#002B49;font-size:10px;padding:3px 10px;border-radius:4px">${player.club}</span>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Formule badge -->
+        <div style="margin-bottom:20px">
+          <span style="background:${isTournoi?'#F9423A':'#002B49'};color:#fff;font-size:11px;padding:5px 14px;border-radius:4px;font-weight:700;letter-spacing:0.5px">${isTournoi?'🎾 Tennis + Tournois':'🏋️ Stage uniquement'}</span>
+        </div>
+
+        <!-- Objectif -->
+        ${player.objectif ? `
+        <div style="border-left:4px solid #F9423A;padding:12px 16px;background:#fff;border-radius:0 6px 6px 0;margin-bottom:24px">
+          <div style="font-size:9px;font-weight:700;color:#F9423A;letter-spacing:2px;margin-bottom:6px;text-transform:uppercase">Objectif du stage</div>
+          <div style="font-size:13px;font-style:italic;color:#0D1F2D;line-height:1.6">« ${player.objectif} »</div>
+        </div>` : ''}
+
+        <!-- Footer info -->
+        <div style="margin-top:auto;padding-top:20px;border-top:1px solid #E5E5DF">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#002B49">HDN Academy</div>
+              <div style="font-size:10px;color:#aaa;margin-top:2px">620 Chemin des Hauts de Nîmes · www.hdnacademy.com</div>
+            </div>
+            <div style="font-size:10px;color:#5E7080">${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
+          </div>
+        </div>
+      </div>
     </div>`;
 
   // Radar SVG
