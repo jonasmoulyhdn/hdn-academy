@@ -561,11 +561,12 @@ function PrintView({ playerId, onClose }) {
   .print-stripe-bottom { display: none; }
   @media print {
     .no-print { display: none !important; }
-    @page { size: A4 portrait; margin: 15mm 12mm 15mm 12mm; }
+    @page { size: A4 portrait; margin: 0mm 12mm 0mm 12mm; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
-    .print-stripe-top { display: none !important; }
-    .print-stripe-bottom { display: none !important; }
-    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: -15mm -12mm; }
+    .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: 0 -12mm; }
+    .print-page-section { padding: 15mm 0; position: relative; }
+    .print-page-section::before { content: ""; display: block; position: running(header); height: 13px; background: linear-gradient(to bottom, #002B49 10px, #F9423A 10px, #F9423A 13px); width: 100vw; margin-left: -12mm; }
+    .print-page-section::after { content: ""; display: block; height: 13px; background: linear-gradient(to top, #002B49 10px, #F9423A 10px, #F9423A 13px); width: 100vw; margin-left: -12mm; }
     .print-page-break { page-break-before: always; break-before: page; }
     .print-bilan { page-break-inside: avoid; break-inside: avoid; }
     .print-match-pair { page-break-after: always; break-after: page; page-break-inside: avoid; }
@@ -627,6 +628,7 @@ function PrintView({ playerId, onClose }) {
 
       {/* Bilan stage */}
       {(player.bilan_technique || player.bilan_physique || player.bilan_mental || player.bilan_tactique || player.points_forts || player.axes_amelioration || player.bilan_global) && (
+        <div className="print-page-section">
         <div className="print-bilan" style={{ marginBottom: 0 }}>
           <div style={{ padding:"4px 0 24px 0" }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Bilan du stage</h2>
@@ -677,6 +679,7 @@ function PrintView({ playerId, onClose }) {
           </div>}
           </div>
         </div>
+        </div>
       )}
       {/* Pied de page */}
       <div style={{ marginTop:32, borderTop:`1px solid ${T.mid}`, paddingTop:10, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>
@@ -685,7 +688,7 @@ function PrintView({ playerId, onClose }) {
 
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
-        <div className="print-page-break">
+        <div className="print-page-break print-page-section">
           <div style={{ padding:"4px 0 24px 0" }}>
           <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, color:T.dark, borderBottom:`2px solid ${T.blue}`, paddingBottom:6, marginBottom:14 }}>Journal des matchs</h2>
           {/* Stats sous le titre */}
@@ -950,7 +953,47 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
 }
 
 // ─── MAIN APP ────────────────────────────────────────────────────
+const APP_PASSWORD = "HDN2026";
+
 export default function HDNCarnetStage() {
+  const [auth, setAuth] = useState(() => sessionStorage.getItem('hdn_auth') === APP_PASSWORD);
+  const [pwInput, setPwInput] = useState("");
+  const [pwError, setPwError] = useState(false);
+
+  function handleLogin() {
+    if (pwInput === APP_PASSWORD) {
+      sessionStorage.setItem('hdn_auth', APP_PASSWORD);
+      setAuth(true);
+      setPwError(false);
+    } else {
+      setPwError(true);
+      setPwInput("");
+    }
+  }
+
+  if (!auth) return (
+    <div style={{ minHeight:"100vh", background:T.blue, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24 }}>
+      <img src={HDN_LOGO} alt="HDN Academy" style={{ height:120, objectFit:"contain", marginBottom:32, filter:"brightness(0) invert(1)" }}/>
+      <div style={{ background:"#fff", borderRadius:16, padding:"36px 40px", width:"100%", maxWidth:360, textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.3)" }}>
+        <div style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:T.dark, marginBottom:6 }}>HDN Academy</div>
+        <div style={{ fontSize:13, color:T.muted, marginBottom:28 }}>Carnet de stage — Accès staff</div>
+        <input
+          type="password"
+          placeholder="Mot de passe"
+          value={pwInput}
+          onChange={e => { setPwInput(e.target.value); setPwError(false); }}
+          onKeyDown={e => e.key === "Enter" && handleLogin()}
+          style={{ width:"100%", boxSizing:"border-box", border:`2px solid ${pwError ? T.red : T.border}`, borderRadius:8, padding:"10px 14px", fontSize:15, outline:"none", marginBottom:8, fontFamily:"system-ui", textAlign:"center", letterSpacing:2 }}
+        />
+        {pwError && <div style={{ fontSize:12, color:T.red, marginBottom:8 }}>Mot de passe incorrect</div>}
+        <button onClick={handleLogin} style={{ width:"100%", background:T.blue, color:"#fff", border:"none", borderRadius:8, padding:"12px", fontSize:15, fontWeight:700, cursor:"pointer", marginTop:8 }}>
+          Accéder
+        </button>
+      </div>
+      <div style={{ marginTop:24, fontSize:11, color:"rgba(255,255,255,0.4)", letterSpacing:1 }}>HDN ACADEMY — NÎMES — 1997</div>
+    </div>
+  );
+
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
