@@ -680,6 +680,7 @@ function PrintView({ playerId, onClose }) {
           </div>}
           </div>
         </div>
+        <div style={{ position:"absolute", bottom:"15mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
         </div>
       )}
       {/* Matchs — tournoi only */}
@@ -752,7 +753,6 @@ function PrintView({ playerId, onClose }) {
             </div>
           ))}
           </div>
-        <div style={{ position:"absolute", bottom:"15mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
         <div style={{ position:"absolute", bottom:"15mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
         </div>
       )}
