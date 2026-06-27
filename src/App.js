@@ -179,10 +179,11 @@ function RadarChart({ data, size = 220 }) {
       {data.map((d, i) => {
         const p = polar(2 * Math.PI * i / n, r + 18);
         const anchor = p.x < cx - 5 ? "end" : p.x > cx + 5 ? "start" : "middle";
-        return (
+        const shortLabels = {"Tactique":"Tact.","Attitude":"Attit.","Concentration":"Conc.","Coup droit":"C.droit","Revers":"Revers","Service":"Service","Smash":"Smash","Volée":"Volée","Retour":"Retour"};
+      return (
           <text key={i} x={p.x} y={p.y + 4} textAnchor={anchor}
-            fontSize={8.5} fill="#5E7080" fontFamily="system-ui">
-            {d.label}
+            fontSize={8} fill="#5E7080" fontFamily="system-ui">
+            {shortLabels[d.label] || d.label}
           </text>
         );
       })}
@@ -564,9 +565,9 @@ function PrintView({ playerId, onClose }) {
     @page { size: A4 portrait; margin: 0mm 12mm 0mm 12mm; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
     .print-cover { page-break-after: always !important; break-after: page !important; width: 210mm; height: 297mm; overflow: hidden; box-sizing: border-box; margin: 0 -12mm; }
-    .print-page-section { padding: 15mm 0; position: relative; }
-    .print-page-section::before { content: ""; display: block; position: running(header); height: 13px; background: linear-gradient(to bottom, #002B49 10px, #F9423A 10px, #F9423A 13px); width: 100vw; margin-left: -12mm; }
-    .print-page-section::after { content: ""; display: block; height: 13px; background: linear-gradient(to top, #002B49 10px, #F9423A 10px, #F9423A 13px); width: 100vw; margin-left: -12mm; }
+    .print-page-section { padding: 15mm 0; position: relative; min-height: 250mm; }
+    .print-page-section::before { content: ""; position: absolute; top: 0; left: -12mm; right: -12mm; height: 13px; background: linear-gradient(to bottom, #002B49 10px, #F9423A 10px, #F9423A 13px); }
+    .print-page-section::after { content: ""; position: absolute; bottom: 0; left: -12mm; right: -12mm; height: 13px; background: linear-gradient(to top, #002B49 10px, #F9423A 10px, #F9423A 13px); }
     .print-page-break { page-break-before: always; break-before: page; }
     .print-bilan { page-break-inside: avoid; break-inside: avoid; }
     .print-match-pair { page-break-after: always; break-after: page; page-break-inside: avoid; }
@@ -644,7 +645,7 @@ function PrintView({ playerId, onClose }) {
             if (radarData.length === 0) return null;
             return (
               <div style={{ display:"flex", gap:20, alignItems:"center", marginBottom:16, padding:"12px 16px", border:`1px solid ${T.border}`, borderRadius:8, flexWrap:"wrap" }}>
-                <RadarChart data={radarData} size={180}/>
+                <RadarChart data={radarData} size={200}/>
                 <div style={{ flex:1, minWidth:160 }}>
                   <div style={{ fontSize:10, fontWeight:700, color:T.muted, marginBottom:6, letterSpacing:0.5 }}>MOYENNES SUR {matches.length} MATCH{matches.length>1?"S":""}</div>
                   {avgs.filter(a=>a.value>0).map(a => (
@@ -681,11 +682,6 @@ function PrintView({ playerId, onClose }) {
         </div>
         </div>
       )}
-      {/* Pied de page */}
-      <div style={{ marginTop:32, borderTop:`1px solid ${T.mid}`, paddingTop:10, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>
-        HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com
-      </div>
-
       {/* Matchs — tournoi only */}
       {isTournoi && matches.length > 0 && (
         <div className="print-page-break print-page-section">
@@ -756,13 +752,10 @@ function PrintView({ playerId, onClose }) {
             </div>
           ))}
           </div>
+        <div style={{ position:"absolute", bottom:"15mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
+        <div style={{ position:"absolute", bottom:"15mm", left:0, right:0, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>
         </div>
       )}
-      {/* Pied de page */}
-      <div style={{ marginTop:32, borderTop:`1px solid ${T.mid}`, paddingTop:10, textAlign:"center", fontSize:9, color:T.muted, letterSpacing:0.8 }}>
-        HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com
-      </div>
-
       <div className="no-print" style={{ marginTop:24, display:"flex", gap:12 }}>
         <Btn onClick={() => window.print()} variant="primary">🖨 Imprimer / PDF</Btn>
         <Btn onClick={onClose} variant="secondary">← Retour</Btn>
