@@ -532,6 +532,149 @@ function PlayerForm({ player, onChange, onSave, onCancel, saving }) {
   );
 }
 
+
+// ─── PRINT FUNCTION ──────────────────────────────────────────────
+function starsHtml(val) {
+  return [1,2,3,4,5].map(i => `<span style="color:${i<=val?'#F9423A':'#DDE3E9'};font-size:13px">★</span>`).join('');
+}
+
+function printBilan(player, matches, fullName, wins, losses, isTournoi, logo) {
+  const allKeys = ['note_tactique','note_attitude','note_concentration','note_coup_droit','note_revers','note_service','note_smash','note_volee','note_retour'];
+  const allLabels = ['Tactique','Attitude','Concentration','Coup droit','Revers','Service','Smash','Volée','Retour'];
+
+  const avgs = allKeys.map((k,i) => {
+    const vals = matches.map(m=>m[k]||0).filter(v=>v>0);
+    return { label: allLabels[i], value: vals.length>0 ? vals.reduce((a,b)=>a+b,0)/vals.length : (player[k]||0) };
+  }).filter(a=>a.value>0);
+
+  const STRIPE = `<div style="height:10px;background:#002B49;margin:0 -15mm"></div><div style="height:3px;background:#F9423A;margin:0 -15mm"></div>`;
+  const STRIPE_BOT = `<div style="height:3px;background:#F9423A;margin:0 -15mm"></div><div style="height:10px;background:#002B49;margin:0 -15mm"></div>`;
+  const FOOTER = `<div style="text-align:center;font-size:9px;color:#888;letter-spacing:0.8px;padding:6px 0">HDN ACADEMY 1997 — NÎMES — 620 Chemin des Hauts de Nîmes — www.hdnacademy.com</div>`;
+
+  const PAGE = (content) => `
+    <div style="position:relative;min-height:100vh;display:flex;flex-direction:column;page-break-after:always">
+      ${STRIPE}
+      <div style="flex:1;padding:12mm 0">${content}</div>
+      ${FOOTER}
+      ${STRIPE_BOT}
+    </div>`;
+
+  // Cover page
+  const cover = `
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;position:relative;padding:20mm 10mm;box-sizing:border-box">
+      <div style="position:absolute;top:0;left:-15mm;right:-15mm;height:10px;background:#002B49"></div>
+      <div style="position:absolute;top:10px;left:-15mm;right:-15mm;height:3px;background:#F9423A"></div>
+      <img src="${logo}" style="height:120px;margin-bottom:24px"/>
+      ${player.photo ? `<img src="${player.photo}" style="width:150px;height:150px;border-radius:50%;object-fit:cover;border:4px solid #002B49;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,43,73,0.2)"/>` : `<div style="width:150px;height:150px;border-radius:50%;background:#E6EEF4;border:4px solid #002B49;margin-bottom:20px;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;color:#002B49">${fullName.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`}
+      <h1 style="margin:0 0 8px;font-family:Georgia,serif;font-size:32px;color:#0D1F2D">${fullName}</h1>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+        <span style="border:1px solid #002B49;border-radius:4px;padding:2px 8px;font-size:11px;color:#002B49;font-weight:700">${player.classement||'NC'}</span>
+        ${player.age ? `<span style="border:1px solid #888;border-radius:4px;padding:2px 8px;font-size:11px;color:#888;font-weight:700">${player.age} ANS</span>` : ''}
+        ${player.club ? `<span style="border:1px solid #888;border-radius:4px;padding:2px 8px;font-size:11px;color:#888;font-weight:700">${player.club}</span>` : ''}
+        <span style="border:1px solid ${isTournoi?'#F9423A':'#002B49'};border-radius:4px;padding:2px 8px;font-size:11px;color:${isTournoi?'#F9423A':'#002B49'};font-weight:700">${isTournoi?'🎾 TENNIS + TOURNOIS':'🏋️ STAGE UNIQUEMENT'}</span>
+      </div>
+      ${player.objectif ? `<div style="max-width:440px;background:#E6EEF4;border-radius:10px;padding:14px 20px;margin-bottom:24px;font-size:13px;font-style:italic;color:#0D1F2D">« ${player.objectif} »</div>` : ''}
+      <div style="width:50px;height:3px;background:#F9423A;border-radius:2px;margin-bottom:16px"></div>
+      <div style="font-size:12px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Bilan de stage</div>
+      <div style="font-size:12px;color:#888">${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
+      <div style="position:absolute;bottom:20px;font-size:10px;color:#aaa;letter-spacing:1px">HDN ACADEMY — NÎMES — 1997</div>
+      <div style="position:absolute;bottom:3px;left:-15mm;right:-15mm;height:3px;background:#F9423A"></div>
+      <div style="position:absolute;bottom:0;left:-15mm;right:-15mm;height:3px;background:#002B49"></div>
+    </div>`;
+
+  // Radar SVG
+  const radarSvg = avgs.length > 0 ? (() => {
+    const size=180, cx=90, cy=90, r=56, n=avgs.length;
+    const polar=(angle,radius)=>({x:cx+radius*Math.cos(angle-Math.PI/2),y:cy+radius*Math.sin(angle-Math.PI/2)});
+    const grid=[1,2,3,4,5].map(l=>{const fr=r*l/5;return avgs.map((_,i)=>{const p=polar(2*Math.PI*i/n,fr);return `${p.x},${p.y}`;}).join(' ');});
+    const pts=avgs.map((d,i)=>{const p=polar(2*Math.PI*i/n,r*(d.value/5));return `${p.x},${p.y}`;}).join(' ');
+    const axes=avgs.map((_,i)=>{const p=polar(2*Math.PI*i/n,r);return `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="#DDE3E9" stroke-width="0.8"/>`;}).join('');
+    const labels=avgs.map((d,i)=>{const p=polar(2*Math.PI*i/n,r+20);const anchor=p.x<cx-5?'end':p.x>cx+5?'start':'middle';const sl={'Tactique':'Tact.','Attitude':'Attit.','Concentration':'Conc.','Coup droit':'C.Dr.','Revers':'Revrs','Service':'Serv.','Smash':'Smash','Volée':'Volée','Retour':'Ret.'};return `<text x="${p.x}" y="${p.y+4}" text-anchor="${anchor}" font-size="8" fill="#5E7080" font-family="system-ui">${sl[d.label]||d.label}</text>`;}).join('');
+    return `<svg width="220" height="220" viewBox="-20 -20 220 220">${grid.map(g=>`<polygon points="${g}" fill="none" stroke="#DDE3E9" stroke-width="0.8"/>`).join('')}${axes}<polygon points="${pts}" fill="#002B4930" stroke="#002B49" stroke-width="2"/>${avgs.map((d,i)=>{const p=polar(2*Math.PI*i/n,r*(d.value/5));return `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#002B49"/>`;}).join('')}${labels}</svg>`;
+  })() : '';
+
+  // Bilan page
+  const bilanContent = `
+    <h2 style="font-family:Georgia,serif;font-size:18px;color:#0D1F2D;border-bottom:2px solid #002B49;padding-bottom:6px;margin-bottom:14px">Bilan du stage</h2>
+    ${avgs.length>0 ? `<div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;padding:12px;border:1px solid #C8D0D8;border-radius:8px;flex-wrap:wrap">${radarSvg}<div style="flex:1;min-width:140px"><div style="font-size:10px;font-weight:700;color:#5E7080;margin-bottom:6px;letter-spacing:0.5px">MOYENNES</div>${avgs.map(a=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #DDE3E9"><span style="color:#5E7080">${a.label}</span><span style="font-weight:700;color:#0D1F2D">${a.value.toFixed(1)} / 5</span></div>`).join('')}</div></div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      ${[['TECHNIQUE',player.bilan_technique,'#002B49'],['PHYSIQUE',player.bilan_physique,'#002B49'],['MENTAL',player.bilan_mental,'#002B49'],['TACTIQUE',player.bilan_tactique,'#002B49']].filter(([,v])=>v).map(([l,v,c])=>`<div style="background:#F0F3F6;border-radius:6px;padding:10px 12px"><div style="font-size:10px;font-weight:700;color:${c};margin-bottom:4px;letter-spacing:0.5px">${l}</div><div style="font-size:12px;white-space:pre-wrap">${v}</div></div>`).join('')}
+    </div>
+    ${player.points_forts?`<div style="background:#F0FFF4;border:1px solid #002B4930;border-radius:6px;padding:10px 12px;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#002B49;margin-bottom:4px">✅ POINTS FORTS</div><div style="font-size:12px">${player.points_forts}</div></div>`:''}
+    ${player.axes_amelioration?`<div style="background:#FFF8F4;border:1px solid #F9423A30;border-radius:6px;padding:10px 12px;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#F9423A;margin-bottom:4px">🎯 AXES D'AMÉLIORATION</div><div style="font-size:12px">${player.axes_amelioration}</div></div>`:''}
+    ${player.bilan_global?`<div style="background:#E6EEF4;border:1px solid #002B4940;border-radius:6px;padding:12px 14px"><div style="font-size:10px;font-weight:700;color:#002B49;margin-bottom:6px">💬 SYNTHÈSE COACH</div><div style="font-size:13px;font-style:italic">${player.bilan_global}</div></div>`:''}`;
+
+  // Matches pages
+  const matchPages = isTournoi && matches.length>0 ? (() => {
+    const pairs = [];
+    for(let i=0;i<matches.length;i+=2) pairs.push(matches.slice(i,i+2));
+    return pairs.map(pair => {
+      const statsRows = (m) => {
+        const mKeys=['note_tactique','note_attitude','note_concentration'];
+        const tKeys=['note_coup_droit','note_revers','note_service','note_smash','note_volee','note_retour'];
+        const mLabels=['Tactique','Attitude','Concentration'];
+        const tLabels=['Coup droit','Revers','Service','Smash','Volée','Retour'];
+        const mRows=mKeys.map((k,i)=>m[k]>0?`<div style="display:flex;justify-content:space-between;font-size:10px;padding:1px 0"><span style="color:#5E7080">${mLabels[i]}</span>${starsHtml(m[k])}</div>`:'').join('');
+        const tRows=tKeys.map((k,i)=>m[k]>0?`<div style="display:flex;justify-content:space-between;font-size:10px;padding:1px 0"><span style="color:#5E7080">${tLabels[i]}</span>${starsHtml(m[k])}</div>`:'').join('');
+        return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;border-top:1px solid #DDE3E9;padding-top:4px;margin-bottom:4px"><div>${mRows}</div><div>${tRows}</div></div>`;
+      };
+      const matchCard = (m,idx) => {
+        const win=m.resultat==='Victoire';const lose=m.resultat==='Défaite';
+        return `<div style="border:1px solid #C8D0D8;border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="background:${win?'#002B49':lose?'#F9423A':'#DDE3E9'};padding:6px 12px;display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#fff;font-weight:700;font-size:12px">Match ${idx+1} — ${m.round||''}${m.tournoi?' · '+m.tournoi:''}</span>
+            <span style="color:#fff;font-size:11px">${m.date?new Date(m.date+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):''}</span>
+          </div>
+          <div style="padding:8px 12px;flex:1">
+            <div style="margin-bottom:4px"><span style="font-weight:700;font-size:13px">vs ${m.adversaire_nom||'–'}</span> <span style="border:1px solid #002B49;border-radius:3px;padding:1px 5px;font-size:10px;color:#002B49;font-weight:700">${m.adversaire_classement||'NC'}</span></div>
+            <div style="margin-bottom:6px"><span style="border:1px solid ${win?'#002B49':'#F9423A'};border-radius:3px;padding:1px 6px;font-size:10px;color:${win?'#002B49':'#F9423A'};font-weight:700">${m.resultat||'–'}</span> <span style="font-family:Georgia,serif;font-weight:800;font-size:15px;margin-left:6px">${m.score||'–'}</span></div>
+            ${statsRows(m)}
+            <div style="border-top:1px solid #DDE3E9;padding-top:4px;margin-bottom:4px;min-height:60px"><div style="font-size:9px;font-weight:700;color:#002B49;margin-bottom:2px;letter-spacing:0.5px">PRÉPARATION</div><div style="font-size:11px;white-space:pre-wrap">${m.preparation||'–'}</div></div>
+            <div style="border-top:1px solid #DDE3E9;padding-top:4px;margin-bottom:4px;min-height:80px"><div style="font-size:9px;font-weight:700;color:#F9423A;margin-bottom:2px;letter-spacing:0.5px">DÉBRIEF</div><div style="font-size:11px;white-space:pre-wrap">${m.debrief||'–'}</div></div>
+            <div style="border-top:1px solid #DDE3E9;padding-top:4px;min-height:44px"><div style="font-size:9px;font-weight:700;color:#5E7080;margin-bottom:2px;letter-spacing:0.5px">COMMENTAIRE</div><div style="font-size:11px;white-space:pre-wrap;font-style:italic;color:#5E7080">${m.notes||'–'}</div></div>
+          </div>
+        </div>`;
+      };
+
+      const statsBlock = `<div style="display:flex;margin-bottom:14px;border:1px solid #C8D0D8;border-radius:8px;overflow:hidden">
+        ${[{l:'Matchs',v:matches.length,c:'#0D1F2D'},{l:'Victoires',v:wins,c:'#002B49'},{l:'Défaites',v:losses,c:'#F9423A'},{l:'Ratio',v:matches.length>0?Math.round(wins/matches.length*100)+'%':'–',c:'#002B49'}].map((s,i)=>`<div style="flex:1;text-align:center;padding:10px 6px;border-right:${i<3?'1px solid #C8D0D8':'none'}"><div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:${s.c}">${s.v}</div><div style="font-size:10px;color:#5E7080;font-weight:700;letter-spacing:0.5px;text-transform:uppercase">${s.l}</div></div>`).join('')}
+      </div>`;
+
+      return PAGE(`
+        <h2 style="font-family:Georgia,serif;font-size:18px;color:#0D1F2D;border-bottom:2px solid #002B49;padding-bottom:6px;margin-bottom:14px">Journal des matchs</h2>
+        ${pair[0]===matches[0] ? statsBlock : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          ${pair.map((m,i)=>matchCard(m,matches.indexOf(m))).join('')}
+        </div>`);
+    }).join('');
+  })() : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+  body { background: #fff; color: #0D1F2D; }
+  @page { size: A4 portrait; margin: 0mm 15mm; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+${cover}
+${PAGE(bilanContent)}
+${matchPages}
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 800);
+}
+
 // ─── PRINT VIEW ──────────────────────────────────────────────────
 function PrintView({ playerId, onClose }) {
   const [player, setPlayer] = useState(null);
@@ -582,7 +725,7 @@ function PrintView({ playerId, onClose }) {
         <div style={{ fontSize:13, color:"#fff", fontWeight:600 }}>📄 {player.prenom} {player.nom} — Aperçu bilan</div>
         <div style={{ display:"flex", gap:10 }}>
           <Btn onClick={onClose} variant="ghost" small style={{ border:"1px solid rgba(255,255,255,0.4)", color:"#fff" }}>← Retour</Btn>
-          <Btn onClick={() => window.print()} variant="red" small>🖨 Imprimer / PDF</Btn>
+          <Btn onClick={() => printBilan(player, matches, fullName, wins, losses, isTournoi, HDN_LOGO)} variant="red" small>🖨 Imprimer / PDF</Btn>
         </div>
       </div>
 
