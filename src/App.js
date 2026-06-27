@@ -525,6 +525,10 @@ function PlayerForm({ player, onChange, onSave, onCancel, saving }) {
       </div>
 
       <Field label="Club"><input style={inputStyle} placeholder="Club d'origine" value={player.club||""} onChange={e=>u("club",e.target.value)}/></Field>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:12 }}>
+        <div style={{ flex:"1 1 140px" }}><Field label="Début du stage"><input type="date" style={inputStyle} value={player.date_debut||""} onChange={e=>u("date_debut",e.target.value)}/></Field></div>
+        <div style={{ flex:"1 1 140px" }}><Field label="Fin du stage"><input type="date" style={inputStyle} value={player.date_fin||""} onChange={e=>u("date_fin",e.target.value)}/></Field></div>
+      </div>
       <Field label="Objectif du stage"><textarea style={{...taStyle,minHeight:54}} placeholder="Ex: améliorer le service..." value={player.objectif||""} onChange={e=>u("objectif",e.target.value)}/></Field>
 
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -565,86 +569,93 @@ function printBilan(player, matches, fullName, wins, losses, isTournoi, logo) {
     </div>`;
 
   // Cover page
+  const formatDate = (d) => d ? new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : null;
+  const stageDates = player.date_debut || player.date_fin
+    ? `${formatDate(player.date_debut)||''}${player.date_debut && player.date_fin ? ' → ' : ''}${formatDate(player.date_fin)||''}`
+    : null;
+
   const cover = `
     <div style="width:100%;height:297mm;display:flex;page-break-after:always;overflow:hidden;box-sizing:border-box;font-family:system-ui,sans-serif">
 
       <!-- LEFT: Narrow blue band -->
-      <div style="width:26%;background:#002B49;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14mm 0 10mm;position:relative;overflow:hidden">
+      <div style="width:22%;background:#002B49;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14mm 0 10mm;position:relative;overflow:hidden">
         <div style="position:absolute;top:0;left:0;right:0;height:5px;background:#F9423A"></div>
         <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:#F9423A"></div>
-        <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;border:1px solid rgba(255,255,255,0.04)"></div>
-        <div style="position:absolute;bottom:-50px;left:-50px;width:160px;height:160px;border-radius:50%;border:1px solid rgba(249,66,58,0.07)"></div>
+        <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;border:1px solid rgba(255,255,255,0.04)"></div>
+        <div style="position:absolute;bottom:-40px;left:-40px;width:130px;height:130px;border-radius:50%;border:1px solid rgba(249,66,58,0.07)"></div>
 
         <!-- Logo blanc -->
-        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:0 10px">
-          <img src="${HDN_LOGO_BLANC}" style="width:100px;height:auto;object-fit:contain"/>
-          <div style="width:22px;height:3px;background:#F9423A;margin-top:12px"></div>
+        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:0 8px">
+          <img src="${HDN_LOGO_BLANC}" style="width:90px;height:auto;object-fit:contain"/>
+          <div style="width:20px;height:3px;background:#F9423A;margin-top:10px"></div>
         </div>
 
-        <!-- Texte descriptif vertical -->
-        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 8px;text-align:center">
-          ${['Académie', 'de Tennis', 'Sports', 'Études', 'Centre', "d'Entraî-", 'nement', 'Stages'].map(t =>
-            `<div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;line-height:1">${t}</div>`
-          ).join('<div style="width:12px;height:1px;background:rgba(249,66,58,0.3);margin:0 auto"></div>')}
+        <!-- Activités horizontales une par ligne -->
+        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0;width:100%">
+          ${['Académie de Tennis','Sports Études','Centre d'Entraînement','Stages'].map((t,i) => `
+            <div style="width:100%;padding:9px 6px;text-align:center;border-top:1px solid rgba(255,255,255,0.06)${i===3?';border-bottom:1px solid rgba(255,255,255,0.06)':''}">
+              <div style="font-size:8px;color:rgba(255,255,255,0.45);letter-spacing:1px;text-transform:uppercase;line-height:1.3">${t}</div>
+            </div>`).join('')}
         </div>
 
         <!-- Bottom label -->
-        <div style="position:relative;z-index:2;text-align:center;padding:0 8px">
-          <div style="font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:2px">NÎMES · 1997</div>
+        <div style="position:relative;z-index:2;text-align:center;padding:0 6px">
+          <div style="font-size:7px;color:rgba(255,255,255,0.2);letter-spacing:2px">NÎMES · 1997</div>
         </div>
       </div>
 
-      <!-- RIGHT: White content -->
-      <div style="flex:1;background:#FAFAFA;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16mm 12mm 12mm;position:relative;overflow:hidden;text-align:center">
+      <!-- RIGHT: White content, fully centered -->
+      <div style="flex:1;background:#FAFAFA;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14mm 10mm 10mm;position:relative;overflow:hidden;text-align:center">
 
         <!-- HDN logo watermark -->
-        <div style="position:absolute;bottom:-10px;right:-20px;opacity:0.03;pointer-events:none">
-          <img src="${HDN_LOGO_LONG}" style="width:260px;height:auto"/>
+        <div style="position:absolute;bottom:-10px;right:-15px;opacity:0.03;pointer-events:none">
+          <img src="${HDN_LOGO_LONG}" style="width:240px;height:auto"/>
         </div>
 
-        <!-- TITRE BILAN DE STAGE -->
-        <div style="margin-bottom:28px">
-          <div style="font-size:9px;color:#aaa;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px">HDN Academy</div>
-          <div style="font-family:Georgia,serif;font-size:36px;font-weight:700;color:#002B49;line-height:1;letter-spacing:-0.5px">Bilan de Stage</div>
-          <div style="width:48px;height:4px;background:#F9423A;margin:14px auto 0;border-radius:2px"></div>
+        <!-- TITRE -->
+        <div style="margin-bottom:24px">
+          <div style="font-size:8px;color:#aaa;letter-spacing:4px;text-transform:uppercase;margin-bottom:8px">HDN Academy</div>
+          <div style="font-family:Georgia,serif;font-size:34px;font-weight:700;color:#002B49;line-height:1;letter-spacing:-0.5px">Bilan de Stage</div>
+          <div style="width:44px;height:4px;background:#F9423A;margin:12px auto 0;border-radius:2px"></div>
         </div>
 
-        <!-- Photo centrée -->
-        <div style="margin-bottom:20px">
+        <!-- Photo -->
+        <div style="margin-bottom:16px">
           ${player.photo
-            ? `<div style="width:140px;height:140px;border-radius:50%;overflow:hidden;border:4px solid #002B49;box-shadow:0 4px 20px rgba(0,43,73,0.15);margin:0 auto"><img src="${player.photo}" style="width:100%;height:100%;object-fit:cover"/></div>`
-            : `<div style="width:140px;height:140px;border-radius:50%;background:#E6EEF4;border:4px solid #002B49;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:700;color:#002B49;font-family:Georgia,serif;margin:0 auto">${fullName.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`
+            ? `<div style="width:130px;height:130px;border-radius:50%;overflow:hidden;border:4px solid #002B49;box-shadow:0 4px 20px rgba(0,43,73,0.15);margin:0 auto"><img src="${player.photo}" style="width:100%;height:100%;object-fit:cover"/></div>`
+            : `<div style="width:130px;height:130px;border-radius:50%;background:#E6EEF4;border:4px solid #002B49;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:700;color:#002B49;font-family:Georgia,serif;margin:0 auto">${fullName.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`
           }
         </div>
 
-        <!-- Nom centré -->
-        <div style="margin-bottom:16px">
-          <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#002B49;line-height:1.1">${fullName}</div>
-        </div>
+        <!-- Nom -->
+        <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#002B49;line-height:1.1;margin-bottom:12px">${fullName}</div>
 
-        <!-- Infos centrées -->
-        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+        <!-- Badges infos -->
+        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
           <span style="background:#002B49;color:#fff;font-size:11px;padding:4px 12px;border-radius:4px;font-weight:700">${player.classement||'NC'}</span>
           ${player.age ? `<span style="background:#E6EEF4;color:#002B49;font-size:11px;padding:4px 12px;border-radius:4px">${player.age} ans</span>` : ''}
           ${player.club ? `<span style="background:#E6EEF4;color:#002B49;font-size:11px;padding:4px 12px;border-radius:4px">${player.club}</span>` : ''}
         </div>
 
-        <!-- Formule centrée -->
-        <div style="margin-bottom:28px">
-          <span style="background:${isTournoi?'#F9423A':'#002B49'};color:#fff;font-size:12px;padding:7px 20px;border-radius:5px;font-weight:700;letter-spacing:0.5px">${isTournoi?'🎾 Tennis + Tournois':'🏋️ Stage uniquement'}</span>
+        <!-- Formule -->
+        <div style="margin-bottom:18px">
+          <span style="background:${isTournoi?'#F9423A':'#002B49'};color:#fff;font-size:12px;padding:6px 18px;border-radius:5px;font-weight:700">${isTournoi?'🎾 Tennis + Tournois':'🏋️ Stage uniquement'}</span>
         </div>
 
-        <!-- Objectif -->
+        <!-- Dates du stage -->
+        ${stageDates ? `<div style="font-size:12px;color:#5E7080;margin-bottom:18px;letter-spacing:0.3px">📅 ${stageDates}</div>` : ''}
+
+        <!-- Objectif sur une ligne avec marges réduites -->
         ${player.objectif ? `
-        <div style="border-left:4px solid #F9423A;padding:12px 16px;background:#fff;border-radius:0 6px 6px 0;margin-bottom:0;text-align:left;max-width:360px;box-shadow:0 1px 6px rgba(0,0,0,0.04)">
-          <div style="font-size:9px;font-weight:700;color:#F9423A;letter-spacing:3px;margin-bottom:6px;text-transform:uppercase">Objectif</div>
-          <div style="font-size:13px;font-style:italic;color:#0D1F2D;line-height:1.6">« ${player.objectif} »</div>
+        <div style="border-left:4px solid #F9423A;padding:10px 14px;background:#fff;border-radius:0 6px 6px 0;text-align:left;width:100%;box-sizing:border-box;box-shadow:0 1px 6px rgba(0,0,0,0.04)">
+          <div style="font-size:8px;font-weight:700;color:#F9423A;letter-spacing:3px;margin-bottom:5px;text-transform:uppercase">Objectif</div>
+          <div style="font-size:12px;font-style:italic;color:#0D1F2D;line-height:1.5">« ${player.objectif} »</div>
         </div>` : ''}
 
-        <!-- Date + footer -->
-        <div style="margin-top:auto;padding-top:16px;border-top:1px solid #E5E5DF;width:100%;text-align:center">
-          <div style="font-size:12px;color:#5E7080">${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
-          <div style="font-size:10px;color:#aaa;margin-top:4px">www.hdnacademy.com</div>
+        <!-- Footer date + site -->
+        <div style="margin-top:auto;padding-top:14px;border-top:1px solid #E5E5DF;width:100%;text-align:center">
+          <div style="font-size:11px;color:#5E7080">${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
+          <div style="font-size:9px;color:#aaa;margin-top:3px">www.hdnacademy.com</div>
         </div>
       </div>
     </div>`;
@@ -1269,7 +1280,7 @@ export default function HDNCarnetStage() {
           <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
             <div style={{ display:"flex", gap:12 }}>
               <input style={{ ...inputStyle, flex:1 }} placeholder="🔍 Rechercher..." value={search} onChange={e=>setSearch(e.target.value)}/>
-              <Btn variant="red" onClick={()=>{setNewPlayer({prenom:"",nom:"",age:"",classement:"NC",club:"",photo:null,objectif:"",type_stage:"tennis_tournoi"});setView("add");}}>+ Stagiaire</Btn>
+              <Btn variant="red" onClick={()=>{setNewPlayer({prenom:"",nom:"",age:"",classement:"NC",club:"",photo:null,objectif:"",type_stage:"tennis_tournoi",date_debut:"",date_fin:""});setView("add");}}>+ Stagiaire</Btn>
             </div>
 
             {loading ? <Spinner/> : <>
