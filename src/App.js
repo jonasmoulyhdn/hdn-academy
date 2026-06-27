@@ -592,7 +592,7 @@ function printBilan(player, matches, fullName, wins, losses, isTournoi, logo) {
 
         <!-- Activités horizontales une par ligne -->
         <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0;width:100%">
-          ${['Académie de Tennis','Sports Études','Centre d'Entraînement','Stages'].map((t,i) => `
+          ${['Académie de Tennis','Sports Études','Centre d\'Entraînement','Stages'].map((t,i) => `
             <div style="width:100%;padding:9px 6px;text-align:center;border-top:1px solid rgba(255,255,255,0.06)${i===3?';border-bottom:1px solid rgba(255,255,255,0.06)':''}">
               <div style="font-size:8px;color:rgba(255,255,255,0.45);letter-spacing:1px;text-transform:uppercase;line-height:1.3">${t}</div>
             </div>`).join('')}
