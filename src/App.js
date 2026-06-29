@@ -265,7 +265,7 @@ function MatchStats({ matches, playerNotes }) {
 }
 
 // ─── MATCH CARD ──────────────────────────────────────────────────
-function MatchCard({ match, index, onEdit, onDelete }) {
+function MatchCard({ match, index, onEdit, onDelete, onPrint }) {
   const [expanded, setExpanded] = useState(false);
   const win = match.resultat === "Victoire";
   const lose = match.resultat === "Défaite";
@@ -289,6 +289,8 @@ function MatchCard({ match, index, onEdit, onDelete }) {
         <div style={{ display: "flex", gap: 6 }}>
           <Btn small variant="ghost" onClick={onEdit}
             style={{ border: "1px solid rgba(255,255,255,0.5)", color: "#fff", padding: "4px 10px" }}>✏️</Btn>
+          <Btn small variant="ghost" onClick={onPrint}
+            style={{ border: "1px solid rgba(255,255,255,0.3)", color: "#fff", padding: "4px 10px" }}>🖨</Btn>
           <Btn small variant="ghost" onClick={onDelete}
             style={{ border: "1px solid rgba(255,255,255,0.3)", color: "#fff", padding: "4px 10px" }}>✕</Btn>
           <span onClick={() => setExpanded(!expanded)}
@@ -1166,7 +1168,7 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
           {matches.length===0 && !addingMatch && <div style={{ textAlign:"center", padding:"40px 20px", color:T.muted, fontStyle:"italic", background:T.surface, borderRadius:10, border:`1px dashed ${T.border}` }}>Aucun match enregistré.</div>}
           {matches.map((m,i) => editMatch?.id===m.id
             ? <MatchForm key={m.id} match={editMatch} onChange={setEditMatch} onSave={saveEditMatch} onCancel={()=>setEditMatch(null)} saving={saving}/>
-            : <MatchCard key={m.id} match={m} index={i} onEdit={()=>setEditMatch({...m})} onDelete={()=>deleteMatch(m.id)}/>
+            : <MatchCard key={m.id} match={m} index={i} onEdit={()=>setEditMatch({...m})} onDelete={()=>deleteMatch(m.id)} onPrint={()=>printBilan(player,[m],`${player.prenom} ${player.nom}`,m.resultat==="Victoire"?1:0,m.resultat==="Défaite"?1:0,isTournoi,HDN_LOGO)}/>
           )}
         </div>
       )}
