@@ -278,7 +278,7 @@ function MatchCard({ match, index, onEdit, onDelete, onPrint }) {
     <div style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 10, overflow: "hidden" }}>
       <div style={{ background: win ? T.blue : lose ? T.red : T.mid, padding: "8px 16px",
         display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setExpanded(!expanded)}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", flex:1 }} onClick={() => setExpanded(!expanded)}>
           <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Match {index + 1}</span>
           <Badge color="#fff" bg="rgba(255,255,255,0.2)">{match.round}</Badge>
           {match.tournoi && <Badge color="#fff" bg="rgba(255,255,255,0.15)">{match.tournoi}</Badge>}
@@ -286,16 +286,22 @@ function MatchCard({ match, index, onEdit, onDelete, onPrint }) {
           {match.score && <span style={{ color: "#fff", fontWeight: 800, fontSize: 14, fontFamily: "Georgia, serif" }}>{match.score}</span>}
           {avgNote && <Badge color="#fff" bg="rgba(255,255,255,0.2)">★ {avgNote}</Badge>}
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <Btn small variant="ghost" onClick={onEdit}
             style={{ border: "1px solid rgba(255,255,255,0.5)", color: "#fff", padding: "4px 10px" }}>✏️</Btn>
-          <Btn small variant="ghost" onClick={onPrint}
-            style={{ border: "1px solid rgba(255,255,255,0.3)", color: "#fff", padding: "4px 10px" }}>🖨</Btn>
           <Btn small variant="ghost" onClick={onDelete}
             style={{ border: "1px solid rgba(255,255,255,0.3)", color: "#fff", padding: "4px 10px" }}>✕</Btn>
           <span onClick={() => setExpanded(!expanded)}
             style={{ color: "#fff", cursor: "pointer", fontSize: 16, padding: "4px 8px" }}>{expanded ? "▲" : "▼"}</span>
         </div>
+      </div>
+      {/* Print button below header - always visible */}
+      <div style={{ padding: "6px 16px", background: win ? T.bluePale : lose ? T.redPale : T.surface, display:"flex", justifyContent:"space-between", alignItems:"center", borderBottom:`1px solid ${T.border}` }}>
+        <span style={{ fontSize:11, color:T.muted }}>
+          {match.date && new Date(match.date+"T00:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"})}
+          {match.resultat && <span style={{marginLeft:8, fontWeight:600, color: win?T.blue:T.red}}>{win?"✓":"✗"} {match.resultat}</span>}
+        </span>
+        <Btn small variant="ghost" onClick={onPrint} style={{ fontSize:11, padding:"3px 10px" }}>🖨 Bilan match</Btn>
       </div>
 
       {expanded && (
@@ -541,6 +547,71 @@ function PlayerForm({ player, onChange, onSave, onCancel, saving }) {
   );
 }
 
+
+
+// ─── PRINT SINGLE MATCH ──────────────────────────────────────────
+function printMatch(player, match, matchIndex) {
+  const win = match.resultat === "Victoire";
+  const lose = match.resultat === "Défaite";
+  const fullName = (player.prenom||"") + " " + (player.nom||"");
+  const mKeys = ["note_tactique","note_attitude","note_concentration","note_coup_droit","note_revers","note_service","note_smash","note_volee","note_retour"];
+  const mLabels = ["Tactique","Attitude","Concentration","Coup droit","Revers","Service","Smash","Volée","Retour"];
+  const star = (v) => [1,2,3,4,5].map(i=>"<span style=\"color:"+(i<=v?"#F9423A":"#DDE3E9")+";font-size:13px\">&#9733;</span>").join("");
+  const fmtDate = (d) => d ? new Date(d+"T00:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}) : "";
+  const evalRows = mKeys.map((k,i)=> match[k]>0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #EEE\"><span style=\"font-size:11px;color:#5E7080\">"+mLabels[i]+"</span><span>"+star(match[k])+"</span></div>" : "").join("");
+
+  const logoB = HDN_LOGO_BLANC;
+  const photo = player.photo;
+
+  const doc = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/><style>*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}@page{size:A4;margin:0}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>" +
+  "<div style=\"width:210mm;min-height:297mm;display:flex;flex-direction:column\">" +
+  "<div style=\"background:#002B49;padding:11mm 14mm 9mm;position:relative\">" +
+    "<div style=\"position:absolute;top:0;left:0;right:0;height:4px;background:#F9423A\"></div>" +
+    "<div style=\"display:flex;align-items:center;justify-content:space-between\">" +
+      "<div style=\"display:flex;align-items:center;gap:14px\">" +
+        "<img src=\""+logoB+"\" style=\"height:44px;object-fit:contain\"/>" +
+        "<div>" +
+          "<div style=\"font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:3px;margin-bottom:3px\">DÉBRIEF DE MATCH</div>" +
+          "<div style=\"font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff\">"+fullName+"</div>" +
+          "<div style=\"font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px\">"+(player.classement||"NC")+(player.age?" · "+player.age+" ans":"")+(player.club?" · "+player.club:"")+"</div>" +
+        "</div>" +
+      "</div>" +
+      (photo ? "<img src=\""+photo+"\" style=\"width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.2)\"/>" : "") +
+    "</div>" +
+  "</div>" +
+  "<div style=\"padding:8mm 14mm;flex:1\">" +
+    "<div style=\"background:"+(win?"#002B49":lose?"#F9423A":"#DDE3E9")+";border-radius:8px 8px 0 0;padding:10px 16px;display:flex;justify-content:space-between\">" +
+      "<span style=\"color:#fff;font-weight:700;font-size:14px\">Match "+(matchIndex+1)+" — "+(match.round||"")+(match.tournoi?" · "+match.tournoi:"")+"</span>" +
+      "<span style=\"color:#fff;font-size:12px\">"+fmtDate(match.date)+"</span>" +
+    "</div>" +
+    "<div style=\"border:1px solid #C8D0D8;border-top:none;border-radius:0 0 8px 8px;padding:14px\">" +
+      "<div style=\"display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap\">" +
+        "<div><div style=\"font-size:10px;color:#888;margin-bottom:2px\">ADVERSAIRE</div><div style=\"font-weight:700;font-size:18px\">"+(match.adversaire_nom||"–")+"</div></div>" +
+        "<span style=\"background:#E6EEF4;border-radius:4px;padding:3px 10px;font-size:12px;font-weight:700;color:#002B49\">"+(match.adversaire_classement||"NC")+"</span>" +
+        "<div style=\"margin-left:auto;text-align:right\"><div style=\"font-size:10px;color:#888;margin-bottom:2px\">SCORE</div><div style=\"font-family:Georgia,serif;font-weight:800;font-size:22px\">"+(match.score||"–")+"</div></div>" +
+        "<span style=\"background:"+(win?"#002B49":lose?"#F9423A":"#DDE3E9")+";color:#fff;padding:4px 12px;border-radius:4px;font-weight:700;font-size:12px\">"+(match.resultat||"–")+"</span>" +
+      "</div>" +
+      "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px\">" +
+        "<div><div style=\"font-size:10px;font-weight:700;color:#5E7080;letter-spacing:0.5px;margin-bottom:8px\">ÉVALUATION</div>"+(evalRows||"<div style=\"font-size:12px;color:#aaa;font-style:italic\">Non renseigné</div>")+"</div>" +
+        "<div>"+(match.preparation?"<div style=\"background:#E6EEF4;border-radius:6px;padding:10px 12px\"><div style=\"font-size:9px;font-weight:700;color:#002B49;margin-bottom:5px\">PRÉPARATION</div><div style=\"font-size:12px;white-space:pre-wrap;line-height:1.5\">"+match.preparation+"</div></div>":"")+"</div>" +
+      "</div>" +
+      (match.debrief ? "<div style=\"background:#FFF8F4;border:1px solid rgba(249,66,58,0.2);border-radius:6px;padding:12px 14px;margin-bottom:12px\"><div style=\"font-size:9px;font-weight:700;color:#F9423A;margin-bottom:6px\">DÉBRIEF</div><div style=\"font-size:13px;white-space:pre-wrap;line-height:1.6;color:#0D1F2D\">"+match.debrief+"</div></div>" : "") +
+      (match.notes ? "<div style=\"border-top:1px solid #EEE;padding-top:10px\"><div style=\"font-size:9px;font-weight:700;color:#888;margin-bottom:5px\">COMMENTAIRE</div><div style=\"font-size:12px;font-style:italic;color:#5E7080;white-space:pre-wrap\">"+match.notes+"</div></div>" : "") +
+    "</div>" +
+  "</div>" +
+  "<div style=\"padding:5mm 14mm;border-top:1px solid #E5E5DF;display:flex;justify-content:space-between\">" +
+    "<span style=\"font-size:9px;color:#aaa\">HDN Academy · 620 Chemin des Hauts de Nîmes · www.hdnacademy.com</span>" +
+    "<span style=\"font-size:9px;color:#aaa\">"+new Date().toLocaleDateString("fr-FR")+"</span>" +
+  "</div>" +
+  "<div style=\"height:3px;background:#F9423A\"></div>" +
+  "<div style=\"height:10px;background:#002B49\"></div>" +
+  "</div></body></html>";
+
+  const w = window.open("","_blank");
+  w.document.write(doc);
+  w.document.close();
+  setTimeout(()=>w.print(),600);
+}
 
 // ─── PRINT FUNCTION ──────────────────────────────────────────────
 function starsHtml(val) {
@@ -1168,7 +1239,7 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
           {matches.length===0 && !addingMatch && <div style={{ textAlign:"center", padding:"40px 20px", color:T.muted, fontStyle:"italic", background:T.surface, borderRadius:10, border:`1px dashed ${T.border}` }}>Aucun match enregistré.</div>}
           {matches.map((m,i) => editMatch?.id===m.id
             ? <MatchForm key={m.id} match={editMatch} onChange={setEditMatch} onSave={saveEditMatch} onCancel={()=>setEditMatch(null)} saving={saving}/>
-            : <MatchCard key={m.id} match={m} index={i} onEdit={()=>setEditMatch({...m})} onDelete={()=>deleteMatch(m.id)} onPrint={()=>printBilan(player,[m],`${player.prenom} ${player.nom}`,m.resultat==="Victoire"?1:0,m.resultat==="Défaite"?1:0,isTournoi,HDN_LOGO)}/>
+            : <MatchCard key={m.id} match={m} index={i} onEdit={()=>setEditMatch({...m})} onDelete={()=>deleteMatch(m.id)} onPrint={()=>printMatch(player,m,i)}/>
           )}
         </div>
       )}
