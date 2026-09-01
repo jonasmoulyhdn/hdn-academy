@@ -1305,8 +1305,9 @@ function LoginScreen({ onLogin }) {
 
   function handleLogin() {
     if (pwInput === APP_PASSWORD) {
-      sessionStorage.setItem('hdn_auth', APP_PASSWORD);
+      localStorage.setItem('hdn_auth', APP_PASSWORD);
       onLogin();
+      window.location.reload();
     } else {
       setPwError(true);
       setPwInput("");
@@ -1338,7 +1339,7 @@ function LoginScreen({ onLogin }) {
 }
 
 export default function HDNCarnetStage() {
-  const [auth, setAuth] = useState(() => sessionStorage.getItem('hdn_auth') === APP_PASSWORD);
+  const [auth, setAuth] = useState(() => localStorage.getItem('hdn_auth') === APP_PASSWORD);
 
   if (!auth) return <LoginScreen onLogin={() => setAuth(true)} />;
 
