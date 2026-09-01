@@ -563,9 +563,9 @@ function printMatch(player, match, matchIndex) {
   const logoB = HDN_LOGO_BLANC;
   const photo = player.photo;
 
-  const doc = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/><style>*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}@page{size:A4;margin:0}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>" +
-  "<div style=\"width:210mm;min-height:297mm;display:flex;flex-direction:column\">" +
-  "<div style=\"background:#002B49;padding:11mm 14mm 9mm;position:relative\">" +
+  const doc = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/><style>*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}@page{size:A4;margin:12mm 10mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:12px}</style></head><body>" +
+  "<div style=\"display:flex;flex-direction:column;min-height:100vh\">" +
+  "<div style=\"background:#002B49;padding:8mm 10mm 7mm;position:relative\">" +
     "<div style=\"position:absolute;top:0;left:0;right:0;height:4px;background:#F9423A\"></div>" +
     "<div style=\"display:flex;align-items:center;justify-content:space-between\">" +
       "<div style=\"display:flex;align-items:center;gap:14px\">" +
@@ -579,27 +579,27 @@ function printMatch(player, match, matchIndex) {
       (photo ? "<img src=\""+photo+"\" style=\"width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.2)\"/>" : "") +
     "</div>" +
   "</div>" +
-  "<div style=\"padding:8mm 14mm;flex:1\">" +
+  "<div style=\"padding:6mm 10mm;flex:1\">" +
     "<div style=\"background:"+(win?"#002B49":lose?"#F9423A":"#DDE3E9")+";border-radius:8px 8px 0 0;padding:10px 16px;display:flex;justify-content:space-between\">" +
       "<span style=\"color:#fff;font-weight:700;font-size:14px\">Match "+(matchIndex+1)+" — "+(match.round||"")+(match.tournoi?" · "+match.tournoi:"")+"</span>" +
       "<span style=\"color:#fff;font-size:12px\">"+fmtDate(match.date)+"</span>" +
     "</div>" +
     "<div style=\"border:1px solid #C8D0D8;border-top:none;border-radius:0 0 8px 8px;padding:14px\">" +
       "<div style=\"display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap\">" +
-        "<div><div style=\"font-size:10px;color:#888;margin-bottom:2px\">ADVERSAIRE</div><div style=\"font-weight:700;font-size:18px\">"+(match.adversaire_nom||"–")+"</div></div>" +
+        "<div><div style=\"font-size:10px;color:#888;margin-bottom:2px\">ADVERSAIRE</div><div style=\"font-weight:700;font-size:15px\">"+(match.adversaire_nom||"–")+"</div></div>" +
         "<span style=\"background:#E6EEF4;border-radius:4px;padding:3px 10px;font-size:12px;font-weight:700;color:#002B49\">"+(match.adversaire_classement||"NC")+"</span>" +
-        "<div style=\"margin-left:auto;text-align:right\"><div style=\"font-size:10px;color:#888;margin-bottom:2px\">SCORE</div><div style=\"font-family:Georgia,serif;font-weight:800;font-size:22px\">"+(match.score||"–")+"</div></div>" +
+        "<div style=\"margin-left:auto;text-align:right\"><div style=\"font-size:10px;color:#888;margin-bottom:2px\">SCORE</div><div style=\"font-family:Georgia,serif;font-weight:800;font-size:18px\">"+(match.score||"–")+"</div></div>" +
         "<span style=\"background:"+(win?"#002B49":lose?"#F9423A":"#DDE3E9")+";color:#fff;padding:4px 12px;border-radius:4px;font-weight:700;font-size:12px\">"+(match.resultat||"–")+"</span>" +
       "</div>" +
       "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px\">" +
         "<div><div style=\"font-size:10px;font-weight:700;color:#5E7080;letter-spacing:0.5px;margin-bottom:8px\">ÉVALUATION</div>"+(evalRows||"<div style=\"font-size:12px;color:#aaa;font-style:italic\">Non renseigné</div>")+"</div>" +
         "<div>"+(match.preparation?"<div style=\"background:#E6EEF4;border-radius:6px;padding:10px 12px\"><div style=\"font-size:9px;font-weight:700;color:#002B49;margin-bottom:5px\">PRÉPARATION</div><div style=\"font-size:12px;white-space:pre-wrap;line-height:1.5\">"+match.preparation+"</div></div>":"")+"</div>" +
       "</div>" +
-      (match.debrief ? "<div style=\"background:#FFF8F4;border:1px solid rgba(249,66,58,0.2);border-radius:6px;padding:12px 14px;margin-bottom:12px\"><div style=\"font-size:9px;font-weight:700;color:#F9423A;margin-bottom:6px\">DÉBRIEF</div><div style=\"font-size:13px;white-space:pre-wrap;line-height:1.6;color:#0D1F2D\">"+match.debrief+"</div></div>" : "") +
+      (match.debrief ? "<div style=\"background:#FFF8F4;border:1px solid rgba(249,66,58,0.2);border-radius:6px;padding:12px 14px;margin-bottom:12px\"><div style=\"font-size:9px;font-weight:700;color:#F9423A;margin-bottom:6px\">DÉBRIEF</div><div style=\"font-size:11px;white-space:pre-wrap;line-height:1.5;color:#0D1F2D\">"+match.debrief+"</div></div>" : "") +
       (match.notes ? "<div style=\"border-top:1px solid #EEE;padding-top:10px\"><div style=\"font-size:9px;font-weight:700;color:#888;margin-bottom:5px\">COMMENTAIRE</div><div style=\"font-size:12px;font-style:italic;color:#5E7080;white-space:pre-wrap\">"+match.notes+"</div></div>" : "") +
     "</div>" +
   "</div>" +
-  "<div style=\"padding:5mm 14mm;border-top:1px solid #E5E5DF;display:flex;justify-content:space-between\">" +
+  "<div style=\"padding:4mm 10mm;border-top:1px solid #E5E5DF;display:flex;justify-content:space-between\">" +
     "<span style=\"font-size:9px;color:#aaa\">HDN Academy · 620 Chemin des Hauts de Nîmes · www.hdnacademy.com</span>" +
     "<span style=\"font-size:9px;color:#aaa\">"+new Date().toLocaleDateString("fr-FR")+"</span>" +
   "</div>" +
@@ -1299,23 +1299,21 @@ function PlayerDetail({ playerId, allPlayers, onBack, onPrint }) {
 // ─── MAIN APP ────────────────────────────────────────────────────
 const APP_PASSWORD = "HDN2026";
 
-export default function HDNCarnetStage() {
-  const [auth, setAuth] = useState(() => sessionStorage.getItem('hdn_auth') === APP_PASSWORD);
+function LoginScreen({ onLogin }) {
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState(false);
 
   function handleLogin() {
     if (pwInput === APP_PASSWORD) {
       sessionStorage.setItem('hdn_auth', APP_PASSWORD);
-      setAuth(true);
-      setPwError(false);
+      onLogin();
     } else {
       setPwError(true);
       setPwInput("");
     }
   }
 
-  if (!auth) return (
+  return (
     <div style={{ minHeight:"100vh", background:T.blue, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24 }}>
       <img src={HDN_LOGO} alt="HDN Academy" style={{ height:120, objectFit:"contain", marginBottom:32, filter:"brightness(0) invert(1)" }}/>
       <div style={{ background:"#fff", borderRadius:16, padding:"36px 40px", width:"100%", maxWidth:360, textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.3)" }}>
@@ -1337,7 +1335,17 @@ export default function HDNCarnetStage() {
       <div style={{ marginTop:24, fontSize:11, color:"rgba(255,255,255,0.4)", letterSpacing:1 }}>HDN ACADEMY — NÎMES — 1997</div>
     </div>
   );
+}
 
+export default function HDNCarnetStage() {
+  const [auth, setAuth] = useState(() => sessionStorage.getItem('hdn_auth') === APP_PASSWORD);
+
+  if (!auth) return <LoginScreen onLogin={() => setAuth(true)} />;
+
+  return <HDNApp />;
+}
+
+function HDNApp() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
