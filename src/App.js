@@ -1590,7 +1590,7 @@ function FicheObjectifsPlayer({ playerId, onBack }) {
 
   async function saveProfile() {
     setSaving(true);
-    try{await apiAcademy.updatePlayer(playerId,editedPlayer);setPlayer(p=>{...p,...editedPlayer});setEditingProfile(false);}
+    try{await apiAcademy.updatePlayer(playerId,editedPlayer);setPlayer(p=>({...p,...editedPlayer}));setEditingProfile(false);}
     catch(e){setError(e.message);}finally{setSaving(false);}
   }
 
@@ -1910,4 +1910,3 @@ function HDNApp() {
     </div>
   );
 }
-
