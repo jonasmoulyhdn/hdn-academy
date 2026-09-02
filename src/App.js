@@ -1346,7 +1346,438 @@ export default function HDNCarnetStage() {
   return <HDNApp />;
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// MODULE FICHES OBJECTIFS
+// ═══════════════════════════════════════════════════════════════
+
+const apiAcademy = {
+  getPlayers: () => sbFetch("academy_players?select=*&order=created_at.asc"),
+  getPlayer: (id) => sbFetch(`academy_players?id=eq.${id}&select=*`).then(r=>r[0]),
+  createPlayer: (p) => sbFetch("academy_players",{method:"POST",body:JSON.stringify(p)}).then(r=>r[0]),
+  updatePlayer: (id,p) => sbFetch(`academy_players?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(p)}),
+  deletePlayer: (id) => sbFetch(`academy_players?id=eq.${id}`,{method:"DELETE",prefer:"return=minimal"}),
+  getFiches: (pid) => sbFetch(`fiches_objectifs?player_id=eq.${pid}&select=*&order=trimestre.asc`),
+  createFiche: (f) => sbFetch("fiches_objectifs",{method:"POST",body:JSON.stringify(f)}).then(r=>r[0]),
+  updateFiche: (id,f) => sbFetch(`fiches_objectifs?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(f)}),
+  deleteFiche: (id) => sbFetch(`fiches_objectifs?id=eq.${id}`,{method:"DELETE",prefer:"return=minimal"}),
+};
+
+const TENNIS_ITEMS = [
+  {key:"t_service",label:"Service / Serve"},
+  {key:"t_retour",label:"Retour / Return"},
+  {key:"t_coup_droit",label:"Coup Droit / Forehand"},
+  {key:"t_revers",label:"Revers / Backhand"},
+  {key:"t_volee",label:"Volée / Volley"},
+  {key:"t_smash",label:"Smash"},
+  {key:"t_tactique",label:"Tactique de jeu / Game tactics"},
+  {key:"t_mental",label:"Mental et Comportement / Attitude and behaviour"},
+];
+
+const PHYSIQUE_ITEMS = [
+  {key:"p_apprentissage",label:"Apprentissage et Maîtrise technique / Skill acquisition"},
+  {key:"p_implication",label:"Implication et Rigueur / Commitment and discipline"},
+  {key:"p_fatigue",label:"Gestion de la Fatigue / Fatigue management"},
+  {key:"p_terrain",label:"Couverture du terrain / Court coverage and physical commitment"},
+];
+
+function NiveauSelector({ value=0, onChange }) {
+  return (
+    <div style={{display:"flex",gap:4}}>
+      {[1,2,3,4,5].map(n=>(
+        <button key={n} onClick={()=>onChange(n===value?0:n)} style={{
+          width:28,height:28,borderRadius:4,border:`1px solid ${n<=value?T.blue:T.border}`,
+          background:n<=value?T.blue:"transparent",color:n<=value?"#fff":T.muted,
+          cursor:"pointer",fontSize:12,fontWeight:700,
+        }}>{n}</button>
+      ))}
+    </div>
+  );
+}
+
+function EvalRow({ item, fiche, onChange }) {
+  const commentKey = item.key+"_comment";
+  return (
+    <div style={{borderBottom:`1px solid ${T.mid}`,paddingBottom:10,marginBottom:10}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,flexWrap:"wrap",gap:8}}>
+        <span style={{fontSize:13,color:T.dark,fontWeight:500}}>{item.label}</span>
+        <NiveauSelector value={fiche[item.key]||0} onChange={v=>onChange({...fiche,[item.key]:v})}/>
+      </div>
+      <input style={{...inputStyle,fontSize:12}} placeholder="Commentaire..." value={fiche[commentKey]||""} onChange={e=>onChange({...fiche,[commentKey]:e.target.value})}/>
+    </div>
+  );
+}
+
+function FicheForm({ player, fiche, onChange, onSave, onCancel, saving }) {
+  const u = (updates) => onChange({...fiche,...updates});
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+        <Field label="Trimestre N°">
+          <select style={{...inputStyle}} value={fiche.trimestre||1} onChange={e=>u({trimestre:parseInt(e.target.value)})}>
+            {[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}
+          </select>
+        </Field>
+        <Field label="Date"><input type="date" style={{...inputStyle}} value={fiche.date_fiche||""} onChange={e=>u({date_fiche:e.target.value})}/></Field>
+      </div>
+      <div style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:10,padding:16}}>
+        <div style={{fontSize:14,fontWeight:700,color:T.blue,marginBottom:16,fontFamily:"Georgia,serif",borderBottom:`2px solid ${T.blue}`,paddingBottom:8}}>🎾 Objectifs Tennis</div>
+        {TENNIS_ITEMS.map(item=><EvalRow key={item.key} item={item} fiche={fiche} onChange={onChange}/>)}
+        <Field label="Axe Prioritaire Tennis"><textarea style={{...taStyle,minHeight:60}} value={fiche.t_axe_prioritaire||""} onChange={e=>u({t_axe_prioritaire:e.target.value})}/></Field>
+      </div>
+      <div style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:10,padding:16}}>
+        <div style={{fontSize:14,fontWeight:700,color:T.red,marginBottom:16,fontFamily:"Georgia,serif",borderBottom:`2px solid ${T.red}`,paddingBottom:8}}>💪 Objectifs Physique</div>
+        {PHYSIQUE_ITEMS.map(item=><EvalRow key={item.key} item={item} fiche={fiche} onChange={onChange}/>)}
+        <Field label="Axe Prioritaire Physique"><textarea style={{...taStyle,minHeight:60}} value={fiche.p_axe_prioritaire||""} onChange={e=>u({p_axe_prioritaire:e.target.value})}/></Field>
+      </div>
+      <div style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:10,padding:16}}>
+        <div style={{fontSize:14,fontWeight:700,color:T.dark,marginBottom:16,fontFamily:"Georgia,serif",borderBottom:`2px solid ${T.mid}`,paddingBottom:8}}>📋 Bilan Général du Trimestre</div>
+        <Field label="Bilan général / General assessment"><textarea style={{...taStyle,minHeight:80}} value={fiche.bilan_general||""} onChange={e=>u({bilan_general:e.target.value})}/></Field>
+        <Field label="Commentaire Coach Tennis"><textarea style={{...taStyle,minHeight:70}} value={fiche.commentaire_coach_tennis||""} onChange={e=>u({commentaire_coach_tennis:e.target.value})}/></Field>
+        <Field label="Commentaire Coach Physique"><textarea style={{...taStyle,minHeight:70}} value={fiche.commentaire_coach_physique||""} onChange={e=>u({commentaire_coach_physique:e.target.value})}/></Field>
+        <Field label="Axes Prioritaires"><textarea style={{...taStyle,minHeight:60}} value={fiche.bilan_axe_prioritaire||""} onChange={e=>u({bilan_axe_prioritaire:e.target.value})}/></Field>
+      </div>
+      <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+        <Btn variant="secondary" onClick={onCancel}>Annuler</Btn>
+        <Btn variant="primary" onClick={onSave} disabled={saving}>{saving?"Sauvegarde...":"Enregistrer la fiche"}</Btn>
+      </div>
+    </div>
+  );
+}
+
+function FicheCard({ fiche, onEdit, onDelete, onPrint }) {
+  const [expanded, setExpanded] = useState(false);
+  const allItems = [...TENNIS_ITEMS,...PHYSIQUE_ITEMS];
+  const rated = allItems.filter(i=>fiche[i.key]>0);
+  const avg = rated.length>0?(rated.reduce((s,i)=>s+fiche[i.key],0)/rated.length).toFixed(1):null;
+  return (
+    <div style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden"}}>
+      <div style={{background:T.blue,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",flex:1}} onClick={()=>setExpanded(!expanded)}>
+          <span style={{color:"#fff",fontWeight:700}}>Trimestre {fiche.trimestre}</span>
+          {fiche.date_fiche&&<span style={{color:"rgba(255,255,255,0.6)",fontSize:12}}>{new Date(fiche.date_fiche+"T00:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}</span>}
+          {avg&&<span style={{background:"rgba(255,255,255,0.15)",color:"#fff",fontSize:11,padding:"2px 8px",borderRadius:4}}>Moy. {avg}/5</span>}
+        </div>
+        <div style={{display:"flex",gap:6}}>
+          <Btn small variant="ghost" onClick={onEdit} style={{border:"1px solid rgba(255,255,255,0.4)",color:"#fff",padding:"4px 10px"}}>✏️</Btn>
+          <Btn small variant="ghost" onClick={onPrint} style={{border:"1px solid rgba(255,255,255,0.4)",color:"#fff",padding:"4px 10px"}}>🖨</Btn>
+          <Btn small variant="ghost" onClick={onDelete} style={{border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"4px 10px"}}>✕</Btn>
+          <span onClick={()=>setExpanded(!expanded)} style={{color:"#fff",cursor:"pointer",fontSize:16,padding:"4px 8px"}}>{expanded?"▲":"▼"}</span>
+        </div>
+      </div>
+      {expanded&&(
+        <div style={{padding:16,display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:T.blue,marginBottom:8}}>🎾 TENNIS</div>
+              {TENNIS_ITEMS.map(item=>fiche[item.key]>0&&(<div key={item.key} style={{display:"flex",justifyContent:"space-between",padding:"3px 0",borderBottom:`1px solid ${T.mid}`,fontSize:12}}><span style={{color:T.muted,flex:1}}>{item.label.split("/")[0].trim()}</span><div>{[1,2,3,4,5].map(n=><span key={n} style={{color:n<=fiche[item.key]?T.blue:T.mid,fontSize:12}}>■</span>)}</div></div>))}
+            </div>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:T.red,marginBottom:8}}>💪 PHYSIQUE</div>
+              {PHYSIQUE_ITEMS.map(item=>fiche[item.key]>0&&(<div key={item.key} style={{display:"flex",justifyContent:"space-between",padding:"3px 0",borderBottom:`1px solid ${T.mid}`,fontSize:12}}><span style={{color:T.muted,flex:1}}>{item.label.split("/")[0].trim()}</span><div>{[1,2,3,4,5].map(n=><span key={n} style={{color:n<=fiche[item.key]?T.red:T.mid,fontSize:12}}>■</span>)}</div></div>))}
+            </div>
+          </div>
+          {fiche.t_axe_prioritaire&&<div style={{background:T.bluePale,borderRadius:6,padding:"8px 12px"}}><div style={{fontSize:10,fontWeight:700,color:T.blue,marginBottom:3}}>AXE TENNIS</div><div style={{fontSize:13}}>{fiche.t_axe_prioritaire}</div></div>}
+          {fiche.p_axe_prioritaire&&<div style={{background:"#FFF8F4",border:`1px solid ${T.red}30`,borderRadius:6,padding:"8px 12px"}}><div style={{fontSize:10,fontWeight:700,color:T.red,marginBottom:3}}>AXE PHYSIQUE</div><div style={{fontSize:13}}>{fiche.p_axe_prioritaire}</div></div>}
+          {fiche.commentaire_coach_tennis&&<div style={{background:T.surface,borderRadius:6,padding:"8px 12px"}}><div style={{fontSize:10,fontWeight:700,color:T.blue,marginBottom:3}}>COACH TENNIS</div><div style={{fontSize:13}}>{fiche.commentaire_coach_tennis}</div></div>}
+          {fiche.commentaire_coach_physique&&<div style={{background:T.surface,borderRadius:6,padding:"8px 12px"}}><div style={{fontSize:10,fontWeight:700,color:T.red,marginBottom:3}}>COACH PHYSIQUE</div><div style={{fontSize:13}}>{fiche.commentaire_coach_physique}</div></div>}
+          {fiche.bilan_general&&<div style={{background:T.bluePale,border:`1px solid ${T.blue}30`,borderRadius:6,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:T.blue,marginBottom:4}}>BILAN GÉNÉRAL</div><div style={{fontSize:13,fontStyle:"italic"}}>{fiche.bilan_general}</div></div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function printFiche(player, fiche) {
+  const fullName=(player.prenom||"")+" "+(player.nom||"");
+  const logoB="data:image/webp;base64,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";
+  const logoL="data:image/webp;base64,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";
+  function bar(val,color){return [1,2,3,4,5].map(n=>`<span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:${n<=val?color:"#E5E5DF"};margin-right:2px"></span>`).join("");}
+  const tRows=TENNIS_ITEMS.map(item=>`<tr style="border-bottom:1px solid #EEE"><td style="padding:4px 6px;font-size:10px;font-weight:500">${item.label.split("/")[0].trim()}</td><td style="padding:4px;text-align:center">${bar(fiche[item.key]||0,"#002B49")}</td><td style="padding:4px 6px;font-size:9px;color:#5E7080;font-style:italic">${fiche[item.key+"_comment"]||""}</td></tr>`).join("");
+  const pRows=PHYSIQUE_ITEMS.map(item=>`<tr style="border-bottom:1px solid #EEE"><td style="padding:4px 6px;font-size:10px;font-weight:500">${item.label.split("/")[0].trim()}</td><td style="padding:4px;text-align:center">${bar(fiche[item.key]||0,"#F9423A")}</td><td style="padding:4px 6px;font-size:9px;color:#5E7080;font-style:italic">${fiche[item.key+"_comment"]||""}</td></tr>`).join("");
+  const doc=`<!DOCTYPE html><html><head><meta charset="utf-8"/><style>*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}@page{size:A4;margin:0}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>
+<div style="display:flex;flex-direction:column;min-height:100vh">
+  <div style="background:#002B49;padding:7mm 12mm 6mm;position:relative"><div style="position:absolute;top:0;left:0;right:0;height:4px;background:#F9423A"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px"><img src="${logoB}" style="height:38px;object-fit:contain"/>
+        <div><div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:3px;margin-bottom:2px">FICHE OBJECTIFS · TRIMESTRE ${fiche.trimestre}</div>
+          <div style="font-family:Georgia,serif;font-size:17px;font-weight:700;color:#fff">${fullName}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.5)">${player.classement||"NC"}${player.coach_referent?" · Coach: "+player.coach_referent:""}${player.prepa_referent?" · Prépa: "+player.prepa_referent:""}</div>
+        </div>
+      </div>
+      <div style="text-align:right">${player.photo?`<img src="${player.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2)"/>`:""}
+        <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:3px">${fiche.date_fiche?new Date(fiche.date_fiche+"T00:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}):""}</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:5mm 12mm;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#002B49;border-bottom:2px solid #002B49;padding-bottom:4px;margin-bottom:8px">🎾 OBJECTIFS TENNIS</div>
+      <table style="width:100%;border-collapse:collapse"><tr style="background:#F0F3F6"><th style="text-align:left;padding:3px 6px;font-size:9px;color:#5E7080">Critère</th><th style="padding:3px;font-size:9px;color:#5E7080">Niv.</th><th style="text-align:left;padding:3px 6px;font-size:9px;color:#5E7080">Commentaire</th></tr>${tRows}</table>
+      ${fiche.t_axe_prioritaire?`<div style="margin-top:6px;background:#E6EEF4;border-radius:4px;padding:6px 8px"><div style="font-size:8px;font-weight:700;color:#002B49;margin-bottom:2px">AXE PRIORITAIRE TENNIS</div><div style="font-size:10px">${fiche.t_axe_prioritaire}</div></div>`:""}
+      <div style="font-size:11px;font-weight:700;color:#F9423A;border-bottom:2px solid #F9423A;padding-bottom:4px;margin:10px 0 8px">💪 OBJECTIFS PHYSIQUE</div>
+      <table style="width:100%;border-collapse:collapse"><tr style="background:#F0F3F6"><th style="text-align:left;padding:3px 6px;font-size:9px;color:#5E7080">Critère</th><th style="padding:3px;font-size:9px;color:#5E7080">Niv.</th><th style="text-align:left;padding:3px 6px;font-size:9px;color:#5E7080">Commentaire</th></tr>${pRows}</table>
+      ${fiche.p_axe_prioritaire?`<div style="margin-top:6px;background:#FFF0EF;border-radius:4px;padding:6px 8px"><div style="font-size:8px;font-weight:700;color:#F9423A;margin-bottom:2px">AXE PRIORITAIRE PHYSIQUE</div><div style="font-size:10px">${fiche.p_axe_prioritaire}</div></div>`:""}
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#0D1F2D;border-bottom:2px solid #DDE3E9;padding-bottom:4px;margin-bottom:8px">📋 BILAN GÉNÉRAL DU TRIMESTRE</div>
+      ${fiche.bilan_general?`<div style="background:#F0F3F6;border-radius:4px;padding:7px;margin-bottom:7px"><div style="font-size:8px;font-weight:700;color:#5E7080;margin-bottom:2px">BILAN GÉNÉRAL</div><div style="font-size:10px;white-space:pre-wrap;line-height:1.5">${fiche.bilan_general}</div></div>`:""}
+      ${fiche.commentaire_coach_tennis?`<div style="background:#E6EEF4;border-radius:4px;padding:7px;margin-bottom:7px"><div style="font-size:8px;font-weight:700;color:#002B49;margin-bottom:2px">COACH TENNIS</div><div style="font-size:10px;white-space:pre-wrap;line-height:1.5">${fiche.commentaire_coach_tennis}</div></div>`:""}
+      ${fiche.commentaire_coach_physique?`<div style="background:#FFF0EF;border-radius:4px;padding:7px;margin-bottom:7px"><div style="font-size:8px;font-weight:700;color:#F9423A;margin-bottom:2px">COACH PHYSIQUE</div><div style="font-size:10px;white-space:pre-wrap;line-height:1.5">${fiche.commentaire_coach_physique}</div></div>`:""}
+      ${fiche.bilan_axe_prioritaire?`<div style="background:#F0F3F6;border-radius:4px;padding:7px"><div style="font-size:8px;font-weight:700;color:#5E7080;margin-bottom:2px">AXES PRIORITAIRES</div><div style="font-size:10px;white-space:pre-wrap;line-height:1.5">${fiche.bilan_axe_prioritaire}</div></div>`:""}
+    </div>
+  </div>
+  <div style="padding:3mm 12mm;border-top:1px solid #E5E5DF;display:flex;justify-content:space-between;align-items:center">
+    <img src="${logoL}" style="height:18px;object-fit:contain"/>
+    <span style="font-size:8px;color:#aaa">HDN Academy · 620 Chemin des Hauts de Nîmes · www.hdnacademy.com · ${new Date().toLocaleDateString("fr-FR")}</span>
+  </div>
+  <div style="height:3px;background:#F9423A"></div><div style="height:8px;background:#002B49"></div>
+</div></body></html>`;
+  const w=window.open("","_blank");w.document.write(doc);w.document.close();setTimeout(()=>w.print(),600);
+}
+
+function FicheObjectifsPlayer({ playerId, onBack }) {
+  const [player, setPlayer] = useState(null);
+  const [fiches, setFiches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [addingFiche, setAddingFiche] = useState(false);
+  const [editingFiche, setEditingFiche] = useState(null);
+  const [newFiche, setNewFiche] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editedPlayer, setEditedPlayer] = useState(null);
+
+  useEffect(()=>{
+    Promise.all([apiAcademy.getPlayer(playerId),apiAcademy.getFiches(playerId)])
+      .then(([p,f])=>{setPlayer(p);setFiches(f||[]);setLoading(false);})
+      .catch(e=>{setError(e.message);setLoading(false);});
+  },[playerId]);
+
+  const emptyFiche = () => ({
+    date_fiche:new Date().toISOString().slice(0,10),trimestre:1,
+    t_service:0,t_service_comment:"",t_retour:0,t_retour_comment:"",
+    t_coup_droit:0,t_coup_droit_comment:"",t_revers:0,t_revers_comment:"",
+    t_volee:0,t_volee_comment:"",t_smash:0,t_smash_comment:"",
+    t_tactique:0,t_tactique_comment:"",t_mental:0,t_mental_comment:"",
+    t_axe_prioritaire:"",p_apprentissage:0,p_apprentissage_comment:"",
+    p_implication:0,p_implication_comment:"",p_fatigue:0,p_fatigue_comment:"",
+    p_terrain:0,p_terrain_comment:"",p_axe_prioritaire:"",
+    bilan_general:"",commentaire_coach_tennis:"",commentaire_coach_physique:"",bilan_axe_prioritaire:"",
+  });
+
+  async function saveFiche() {
+    setSaving(true);
+    try {
+      if(editingFiche) {
+        const {id,player_id,created_at,...data}=editingFiche;
+        await apiAcademy.updateFiche(id,data);
+        setFiches(prev=>prev.map(f=>f.id===id?editingFiche:f));
+        setEditingFiche(null);
+      } else {
+        const created=await apiAcademy.createFiche({...newFiche,player_id:playerId});
+        setFiches(prev=>[...prev,created]);
+        setAddingFiche(false);setNewFiche(null);
+      }
+    } catch(e){setError(e.message);} finally{setSaving(false);}
+  }
+
+  async function deleteFiche(id) {
+    if(!window.confirm("Supprimer cette fiche ?")) return;
+    try{await apiAcademy.deleteFiche(id);setFiches(prev=>prev.filter(f=>f.id!==id));}
+    catch(e){setError(e.message);}
+  }
+
+  async function saveProfile() {
+    setSaving(true);
+    try{await apiAcademy.updatePlayer(playerId,editedPlayer);setPlayer(p=>{...p,...editedPlayer});setEditingProfile(false);}
+    catch(e){setError(e.message);}finally{setSaving(false);}
+  }
+
+  if(loading) return <Spinner/>;
+  if(!player) return null;
+  const fullName=`${player.prenom} ${player.nom}`.trim();
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+      <button onClick={onBack} style={{background:"none",border:"none",color:T.blue,cursor:"pointer",fontWeight:600,fontSize:14,display:"flex",alignItems:"center",gap:6,padding:0,width:"fit-content"}}>← Retour</button>
+      {error&&<div style={{background:T.redPale,border:`1px solid ${T.red}`,borderRadius:8,padding:12,fontSize:13,color:T.red}}>⚠️ {error}</div>}
+      {editingProfile&&editedPlayer&&(
+        <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:T.white,borderRadius:16,padding:28,width:"100%",maxWidth:500,maxHeight:"90vh",overflowY:"auto"}}>
+            <div style={{fontWeight:700,fontSize:16,color:T.blue,marginBottom:20}}>✏️ Modifier le profil</div>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                <Field label="Prénom"><input style={{...inputStyle}} value={editedPlayer.prenom||""} onChange={e=>setEditedPlayer(p=>{...p,prenom:e.target.value})}/></Field>
+                <Field label="Nom"><input style={{...inputStyle}} value={editedPlayer.nom||""} onChange={e=>setEditedPlayer(p=>{...p,nom:e.target.value})}/></Field>
+              </div>
+              <Field label="Date de naissance"><input type="date" style={{...inputStyle}} value={editedPlayer.date_naissance||""} onChange={e=>setEditedPlayer(p=>{...p,date_naissance:e.target.value})}/></Field>
+              <Field label="Classement"><select style={{...inputStyle}} value={editedPlayer.classement||"NC"} onChange={e=>setEditedPlayer(p=>{...p,classement:e.target.value})}><option>NC</option>{CLASSEMENTS.map(c=><option key={c}>{c}</option>)}</select></Field>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                <Field label="Coach référent"><input style={{...inputStyle}} value={editedPlayer.coach_referent||""} onChange={e=>setEditedPlayer(p=>{...p,coach_referent:e.target.value})}/></Field>
+                <Field label="Prépa référent"><input style={{...inputStyle}} value={editedPlayer.prepa_referent||""} onChange={e=>setEditedPlayer(p=>{...p,prepa_referent:e.target.value})}/></Field>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:20}}>
+              <Btn variant="secondary" onClick={()=>setEditingProfile(false)}>Annuler</Btn>
+              <Btn variant="primary" onClick={saveProfile} disabled={saving}>{saving?"Sauvegarde...":"Enregistrer"}</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+      <div style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:12,padding:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+        <Avatar src={player.photo} name={fullName} size={72}/>
+        <div style={{flex:1}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:4}}>
+            <h2 style={{margin:0,fontFamily:"Georgia,serif",fontSize:20,color:T.dark}}>{fullName}</h2>
+            <Badge color={T.blue}>{player.classement}</Badge>
+          </div>
+          {player.date_naissance&&<div style={{fontSize:12,color:T.muted}}>🎂 {new Date(player.date_naissance+"T00:00:00").toLocaleDateString("fr-FR")}</div>}
+          {player.coach_referent&&<div style={{fontSize:12,color:T.muted}}>🎾 Coach: {player.coach_referent}</div>}
+          {player.prepa_referent&&<div style={{fontSize:12,color:T.muted}}>💪 Prépa: {player.prepa_referent}</div>}
+        </div>
+        <Btn small variant="ghost" onClick={()=>{setEditedPlayer({...player});setEditingProfile(true);}}>✏️ Profil</Btn>
+      </div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <h3 style={{margin:0,fontSize:16,color:T.dark,fontFamily:"Georgia,serif"}}>Fiches Objectifs</h3>
+        {!addingFiche&&!editingFiche&&<Btn variant="red" small onClick={()=>{setNewFiche(emptyFiche());setAddingFiche(true);}}>+ Nouvelle fiche</Btn>}
+      </div>
+      {addingFiche&&newFiche&&(
+        <div style={{background:T.white,border:`2px solid ${T.blue}`,borderRadius:12,padding:20}}>
+          <div style={{fontWeight:700,fontSize:15,color:T.blue,marginBottom:16}}>➕ Nouvelle fiche objectifs</div>
+          <FicheForm player={player} fiche={newFiche} onChange={setNewFiche} onSave={saveFiche} onCancel={()=>{setAddingFiche(false);setNewFiche(null);}} saving={saving}/>
+        </div>
+      )}
+      {fiches.length===0&&!addingFiche&&(
+        <div style={{textAlign:"center",padding:"40px 20px",color:T.muted,fontStyle:"italic",background:T.surface,borderRadius:10,border:`1px dashed ${T.border}`}}>Aucune fiche objectifs pour ce joueur.</div>
+      )}
+      {fiches.map(f=>editingFiche?.id===f.id?(
+        <div key={f.id} style={{background:T.white,border:`2px solid ${T.blue}`,borderRadius:12,padding:20}}>
+          <div style={{fontWeight:700,fontSize:15,color:T.blue,marginBottom:16}}>✏️ Modifier la fiche</div>
+          <FicheForm player={player} fiche={editingFiche} onChange={setEditingFiche} onSave={saveFiche} onCancel={()=>setEditingFiche(null)} saving={saving}/>
+        </div>
+      ):(
+        <FicheCard key={f.id} fiche={f} onEdit={()=>setEditingFiche({...f})} onDelete={()=>deleteFiche(f.id)} onPrint={()=>printFiche(player,f)}/>
+      ))}
+    </div>
+  );
+}
+
+function FicheObjectifsModule() {
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState("list");
+  const [currentPlayerId, setCurrentPlayerId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [addingPlayer, setAddingPlayer] = useState(false);
+  const [newPlayer, setNewPlayer] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const fileRef2 = useRef();
+
+  useEffect(()=>{
+    apiAcademy.getPlayers().then(p=>{setPlayers(p||[]);setLoading(false);}).catch(e=>{setError(e.message);setLoading(false);});
+  },[]);
+
+  async function saveNewPlayer() {
+    if(!newPlayer?.prenom&&!newPlayer?.nom) return;
+    setSaving(true);
+    try{const c=await apiAcademy.createPlayer(newPlayer);setPlayers(prev=>[...prev,c]);setCurrentPlayerId(c.id);setView("detail");setAddingPlayer(false);setNewPlayer(null);}
+    catch(e){setError(e.message);}finally{setSaving(false);}
+  }
+
+  async function deletePlayer(id) {
+    if(!window.confirm("Supprimer ce joueur et toutes ses fiches ?")) return;
+    try{await apiAcademy.deletePlayer(id);setPlayers(prev=>prev.filter(p=>p.id!==id));}
+    catch(e){setError(e.message);}
+  }
+
+  function handlePhoto2(e) {
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();r.onload=ev=>setNewPlayer(p=>{...p,photo:ev.target.result});r.readAsDataURL(file);
+  }
+
+  if(view==="detail"&&currentPlayerId) return <FicheObjectifsPlayer playerId={currentPlayerId} onBack={()=>setView("list")}/>;
+
+  const filtered=players.filter(p=>`${p.prenom} ${p.nom}`.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+      {error&&<div style={{background:T.redPale,border:`1px solid ${T.red}`,borderRadius:8,padding:12,fontSize:13,color:T.red}}>⚠️ {error}</div>}
+      {addingPlayer&&newPlayer&&(
+        <div style={{background:T.white,border:`2px solid ${T.blue}`,borderRadius:12,padding:24,display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{fontWeight:700,fontSize:16,color:T.blue}}>Nouveau joueur académie</div>
+          <div style={{display:"flex",alignItems:"center",gap:16}}>
+            <Avatar src={newPlayer.photo} name={`${newPlayer.prenom} ${newPlayer.nom}`} size={72}/>
+            <div><Btn small variant="ghost" onClick={()=>fileRef2.current.click()}>📷 Photo</Btn><input ref={fileRef2} type="file" accept="image/*" style={{display:"none"}} onChange={handlePhoto2}/></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Field label="Prénom" required><input style={{...inputStyle}} value={newPlayer.prenom||""} onChange={e=>setNewPlayer(p=>{...p,prenom:e.target.value})}/></Field>
+            <Field label="Nom" required><input style={{...inputStyle}} value={newPlayer.nom||""} onChange={e=>setNewPlayer(p=>{...p,nom:e.target.value})}/></Field>
+          </div>
+          <Field label="Date de naissance"><input type="date" style={{...inputStyle}} value={newPlayer.date_naissance||""} onChange={e=>setNewPlayer(p=>{...p,date_naissance:e.target.value})}/></Field>
+          <Field label="Classement"><select style={{...inputStyle}} value={newPlayer.classement||"NC"} onChange={e=>setNewPlayer(p=>{...p,classement:e.target.value})}><option>NC</option>{CLASSEMENTS.map(c=><option key={c}>{c}</option>)}</select></Field>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Field label="Coach référent"><input style={{...inputStyle}} value={newPlayer.coach_referent||""} onChange={e=>setNewPlayer(p=>{...p,coach_referent:e.target.value})}/></Field>
+            <Field label="Prépa référent"><input style={{...inputStyle}} value={newPlayer.prepa_referent||""} onChange={e=>setNewPlayer(p=>{...p,prepa_referent:e.target.value})}/></Field>
+          </div>
+          <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+            <Btn variant="secondary" onClick={()=>{setAddingPlayer(false);setNewPlayer(null);}}>Annuler</Btn>
+            <Btn variant="primary" onClick={saveNewPlayer} disabled={saving}>{saving?"Sauvegarde...":"Créer le joueur"}</Btn>
+          </div>
+        </div>
+      )}
+      {!addingPlayer&&(
+        <div style={{display:"flex",gap:12}}>
+          <input style={{...inputStyle,flex:1}} placeholder="🔍 Rechercher un joueur..." value={search} onChange={e=>setSearch(e.target.value)}/>
+          <Btn variant="red" onClick={()=>{setNewPlayer({prenom:"",nom:"",date_naissance:"",classement:"NC",coach_referent:"",prepa_referent:"",photo:null});setAddingPlayer(true);}}>+ Joueur</Btn>
+        </div>
+      )}
+      {players.length>0&&!addingPlayer&&(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+          {[{l:"Joueurs académie",v:players.length,i:"👤"},{l:"Fiches objectifs",v:"—",i:"🎯"}].map((s,i)=>(
+            <div key={i} style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:10,padding:"14px 16px",textAlign:"center"}}>
+              <div style={{fontSize:20,marginBottom:4}}>{s.i}</div>
+              <div style={{fontFamily:"Georgia,serif",fontSize:24,fontWeight:700,color:T.blue}}>{s.v}</div>
+              <div style={{fontSize:11,color:T.muted,fontWeight:700,letterSpacing:0.5,textTransform:"uppercase"}}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {loading?<Spinner/>:(
+        <>
+          {filtered.length===0&&!addingPlayer&&(
+            <div style={{textAlign:"center",padding:"60px 20px",color:T.muted,fontStyle:"italic",background:T.white,borderRadius:12,border:`1px dashed ${T.border}`}}>
+              {players.length===0?<>Aucun joueur.<br/><span style={{fontSize:12}}>Ajoutez votre premier joueur académie.</span></>:"Aucun résultat."}
+            </div>
+          )}
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {filtered.map(p=>(
+              <button key={p.id} onClick={()=>{setCurrentPlayerId(p.id);setView("detail");}}
+                style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:10,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",textAlign:"left"}}
+                onMouseEnter={e=>e.currentTarget.style.boxShadow=`0 2px 12px ${T.blue}25`}
+                onMouseLeave={e=>e.currentTarget.style.boxShadow="none"}>
+                <Avatar src={p.photo} name={`${p.prenom} ${p.nom}`} size={48}/>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:15}}>{p.prenom} {p.nom}</div>
+                  <div style={{fontSize:12,color:T.muted,marginTop:2}}>{p.coach_referent&&`Coach: ${p.coach_referent}`}{p.prepa_referent&&` · Prépa: ${p.prepa_referent}`}</div>
+                </div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <Badge color={T.blue}>{p.classement}</Badge>
+                  <Btn small variant="danger" onClick={e=>{e.stopPropagation();deletePlayer(p.id);}}>✕</Btn>
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+
 function HDNApp() {
+  const [appView, setAppView] = useState("stage");
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
@@ -1401,7 +1832,7 @@ function HDNApp() {
             }
           </div>
         </div>
-        {view==="detail" && currentPlayerId && (
+        {appView==="stage" && view==="detail" && currentPlayerId && (
           <div style={{ display:"flex", gap:8 }}>
             <Btn small variant="red" onClick={()=>setView("print")}>🖨 Bilan PDF</Btn>
             <Btn small variant="secondary" onClick={()=>deletePlayer(currentPlayerId)}>🗑 Supprimer</Btn>
@@ -1415,7 +1846,9 @@ function HDNApp() {
           ⚠️ {error} <button onClick={()=>setError(null)} style={{float:"right",background:"none",border:"none",cursor:"pointer",color:T.red}}>✕</button>
         </div>}
 
-        {view==="list" && (
+        {appView==="fiches" && <FicheObjectifsModule />}
+
+        {appView==="stage" && view==="list" && (
           <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
             <div style={{ display:"flex", gap:12 }}>
               <input style={{ ...inputStyle, flex:1 }} placeholder="🔍 Rechercher..." value={search} onChange={e=>setSearch(e.target.value)}/>
@@ -1466,11 +1899,11 @@ function HDNApp() {
           </div>
         )}
 
-        {view==="add" && newPlayer && (
+        {appView==="stage" && view==="add" && newPlayer && (
           <PlayerForm player={newPlayer} onChange={setNewPlayer} onSave={saveNewPlayer} onCancel={()=>setView("list")} saving={saving}/>
         )}
 
-        {view==="detail" && currentPlayerId && (
+        {appView==="stage" && view==="detail" && currentPlayerId && (
           <PlayerDetail playerId={currentPlayerId} allPlayers={players} onBack={()=>setView("list")} onPrint={()=>setView("print")}/>
         )}
       </div>
